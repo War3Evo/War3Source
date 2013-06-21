@@ -23,6 +23,7 @@
 #include "W3SIncs/vars"
 #include "W3SIncs/cvar"
 #include "W3SIncs/forwards"
+#include "W3SIncs/forwards2"
 #include "W3SIncs/natives"
 #include "W3SIncs/offsets"
 #include "W3SIncs/gameevents"
