@@ -239,7 +239,7 @@ enum W3PlayerProp
 	CurrentRace,
 	PendingRace,
 	PlayerGold,
-	DERPPRERPER,//REMOVE PlayerDiamonds, //DRPECE
+	PlayerDiamonds,//REMOVE PlayerDiamonds, //DRPECE
 	iMaxHP,
 	bIsDucking,
 	
@@ -751,4 +751,19 @@ stock any:W3GetHintPriorityType(W3HintPriority:priority){
 // Modeltypes used by the Model Engine
 #define MDLTYPE_VIEWMODEL 0
 #define MDLTYPE_WORLDMODEL 1
+
+
+enum ItemClassString
+{
+	unknown = TFClass_Unknown,
+	scout = TFClass_Scout,
+	sniper = TFClass_Sniper,
+	soldier = TFClass_Soldier,
+	demoman = TFClass_DemoMan,
+	medic = TFClass_Medic,
+	heavy = TFClass_Heavy,
+	pyro = TFClass_Pyro,
+	spy = TFClass_Spy,
+	engineer = TFClass_Engineer
+}
 #define MDLTYPE_GRENADE 2 //thrown grenades
