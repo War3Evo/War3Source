@@ -39,23 +39,14 @@ Author(s): Anthony Iacono
 
 
 new Handle:g_OnWar3PluginReadyHandle; //loadin default races in order
-new Handle:g_OnWar3PluginReadyHandle2; //other races
 new Handle:g_OnWar3PluginReadyHandle3; //other races backwards compatable
-
-new Handle:hOnSHLoadHeroOrItemOrdered;
-
+//new Handle:g_OnWar3PluginReadyHandle4;
 
 new Handle:g_OnWar3EventSpawnFH;
 new Handle:g_OnWar3EventDeathFH;
 
-
-new Handle:g_OnSHEventSpawnFH;
-new Handle:g_OnSHEventDeathFH;
-
 new Handle:g_CheckCompatabilityFH;
 new Handle:g_War3InterfaceExecFH;
-
-new Handle:g_hfwdW3SetForwarededVar;
 
 ///END forwards
 
@@ -64,64 +55,28 @@ bool:War3Source_InitForwards()
 {
 	
 	
-	g_OnWar3PluginReadyHandle=CreateGlobalForward("OnWar3LoadRaceOrItemOrdered",ET_Ignore,Param_Cell);//ordered
-	g_OnWar3PluginReadyHandle2=CreateGlobalForward("OnWar3LoadRaceOrItemOrdered2",ET_Ignore,Param_Cell);//ordered
-	g_OnWar3PluginReadyHandle3=CreateGlobalForward("OnWar3PluginReady",ET_Ignore); //unodered rest of the items or races. backwards compatable..
-	
-	hOnSHLoadHeroOrItemOrdered=CreateGlobalForward("OnSHLoadHeroOrItemOrdered",ET_Ignore,Param_Cell);
-	
-	g_OnWar3EventSpawnFH=CreateGlobalForward("OnWar3EventSpawn",ET_Ignore,Param_Cell);
-	g_OnWar3EventDeathFH=CreateGlobalForward("OnWar3EventDeath",ET_Ignore,Param_Cell,Param_Cell,Param_Cell);
-
-	g_OnSHEventSpawnFH=CreateGlobalForward("OnSHEventSpawn",ET_Ignore,Param_Cell);
-	g_OnSHEventDeathFH=CreateGlobalForward("OnSHEventDeath",ET_Ignore,Param_Cell,Param_Cell);
-	
-	
-	g_CheckCompatabilityFH=CreateGlobalForward("CheckWar3Compatability",ET_Ignore,Param_String);
-	g_War3InterfaceExecFH=CreateGlobalForward("War3InterfaceExec",ET_Ignore);
-	
-	g_hfwdW3SetForwarededVar=CreateGlobalForward("W3SetForwarededVar",ET_Ignore,Param_Cell,Param_Cell);
+	g_OnWar3PluginReadyHandle=CreateGlobalForward("OnWar3LoadRaceOrItemOrdered",ET_Ignore,Param_Cell,Param_Cell);//ordered
+	// moved to forwards2.inc:
+	//g_OnWar3PluginReadyHandle2=CreateGlobalForward("OnWar3LoadRaceOrItemOrdered2",ET_Ignore,Param_Cell,Param_Cell,Param_Cell);//ordered
 	return true;
 }
-//mapstart
-CheckExtensionAvailable(){
 
-	///check if extension is loaded
-	new bool:available=false;
-	static Handle:found=Handle:-1;	
-	new Handle:pl;
-	if(found==Handle:-1){
-		new Handle:iter = GetPluginIterator();
-		while (MorePlugins(iter))
-		{
-			pl = ReadPlugin(iter);
-			if(GetFunctionByName(pl,"ExtensionAvailable")!=INVALID_FUNCTION){
-				found=pl;
-				new String:name[64];
-				GetPluginFilename(pl,name,sizeof(name));
-				//DP("plugin %d %s %d",pl,name,INVALID_FUNCTION);
-				break;
-			
-			}
-		}
-		CloseHandle(iter);
-	}
-	if(found>Handle:-1){
-		if(PluginStatus:GetPluginStatus(Handle:found)== Plugin_Running){
-			available=true;
-			DP("EXTENSION AVAILABLE");
-		}
-	}
-	else if(found==Handle:-1){
-		//DP("EXTENSION AVAILABLE plugin NOT FOUND");
-		found=Handle:-2;
-	}
+bool:War3Source_InitForwards3()
+{
+	g_OnWar3PluginReadyHandle3=CreateGlobalForward("OnWar3PluginReady",ET_Ignore); //unodered rest of the items or races. backwards compatable..
+	//g_OnWar3PluginReadyHandle4=CreateGlobalForward("OnWar3PluginRaceId",ET_Ignore,Param_Cell); //Used to send plugin RACE ID before it calls plugin to load itself	
 
-	Call_StartForward(g_hfwdW3SetForwarededVar);
-	Call_PushCell(EXTAvailable);
-	Call_PushCell(available);
-	Call_Finish(dummyreturn);
+    
+	g_OnWar3EventSpawnFH=CreateGlobalForward("OnWar3EventSpawn",ET_Ignore,Param_Cell);
+	g_OnWar3EventDeathFH=CreateGlobalForward("OnWar3EventDeath",ET_Ignore,Param_Cell,Param_Cell,Param_Cell,Param_Cell,Param_Cell,Param_Cell);
+
+	g_CheckCompatabilityFH=CreateGlobalForward("CheckWar3Compatability",ET_Ignore,Param_String);
+	g_War3InterfaceExecFH=CreateGlobalForward("War3InterfaceExec",ET_Ignore);
+    
+	return true;
 }
+
+
 //mapstart
 OneTimeForwards(){
 	Call_StartForward(g_CheckCompatabilityFH);
@@ -131,31 +86,18 @@ OneTimeForwards(){
 }
 
 DoForward_OnWar3EventSpawn(client){
-	if(W3()){
 		Call_StartForward(g_OnWar3EventSpawnFH);
 		Call_PushCell(client);
 		Call_Finish(dummyreturn);
-	}
-	if(SH()){
-		Call_StartForward(g_OnSHEventSpawnFH);
-		Call_PushCell(client);
-		Call_Finish(dummyreturn);
-	}
 }
-DoForward_OnWar3EventDeath(victim,killer,deathrace){
-	if(W3()){
+DoForward_OnWar3EventDeath(victim,killer,deathrace,distance,attacker_hpleft){
 		Call_StartForward(g_OnWar3EventDeathFH);
 		Call_PushCell(victim);
 		Call_PushCell(killer);
 		Call_PushCell(deathrace);
+		Call_PushCell(distance);
+		Call_PushCell(attacker_hpleft);
 		Call_Finish(dummyreturn);
-	}
-	if(SH()){
-		Call_StartForward(g_OnSHEventDeathFH);
-		Call_PushCell(victim);
-		Call_PushCell(killer);
-		Call_Finish(dummyreturn);
-	}
 }
 
 DoWar3InterfaceExecForward(){
