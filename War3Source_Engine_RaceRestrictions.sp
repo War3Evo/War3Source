@@ -21,6 +21,7 @@ public OnW3Denyable(W3DENY:event,client){
 	if(event==DN_CanSelectRace)
 	{
 		new race_selected=W3GetVar(EventArg1);
+		new bool:No_Message=W3GetVar(EventArg2);
 		if(race_selected<=0)
 		{
 			ThrowError(" DN_CanSelectRace CALLED WITH INVALID RACE [%d]",race_selected);
@@ -49,7 +50,10 @@ public OnW3Denyable(W3DENY:event,client){
 		{
 			if(min_level!=0&&min_level>total_level)
 			{
-				War3_ChatMessage(client,"%T","You need {amount} more total levels to use this race",GetTrans(),min_level-total_level);
+				if(No_Message==false)
+				{
+					War3_ChatMessage(client,"%T","You need {amount} more total levels to use this race",GetTrans(),min_level-total_level);
+				}
 				return W3Deny();
 			}
 		
@@ -58,15 +62,18 @@ public OnW3Denyable(W3DENY:event,client){
 			//FLAG CHECK
 			new String:requiredflagstr[32];
 			W3GetRaceAccessFlagStr(race_selected,requiredflagstr,sizeof(requiredflagstr));  ///14 = index, see races.inc
-		
+			//DP("Race Access Flag of Selected: %s",requiredflagstr);
 			if(!StrEqual(requiredflagstr, "0", false)&&!StrEqual(requiredflagstr, "", false))
 			{
 			
 				new AdminId:admin = GetUserAdmin(client);
 				if(admin == INVALID_ADMIN_ID) //flag is required and this client is not admin
 				{
-					War3_ChatMessage(client,"%T","Restricted Race. Ask an admin on how to unlock",GetTrans());
-					PrintToConsole(client,"%T","No Admin ID found",client);
+					if(No_Message==false)
+					{
+						War3_ChatMessage(client,"%T","Restricted Race. Ask an admin on how to unlock",GetTrans());
+						PrintToConsole(client,"%T","No Admin ID found",client);
+					}
 					return W3Deny();
 				}
 				else
@@ -74,16 +81,21 @@ public OnW3Denyable(W3DENY:event,client){
 					new AdminFlag:flag;
 					if (!FindFlagByChar(requiredflagstr[0], flag)) //this gets the flag class from the string
 					{
-						War3_ChatMessage(client,"%T","ERROR on admin flag check {flag}",client,requiredflagstr);
+						if(No_Message==false)
+						{
+							War3_ChatMessage(client,"%T","ERROR on admin flag check {flag}",client,requiredflagstr);
+						}
 						return W3Deny();
 					}
 					else
 					{
 						if (!GetAdminFlag(admin, flag))
 						{
-						
-							War3_ChatMessage(client,"%T","Restricted race, ask an admin on how to unlock",GetTrans());
-							PrintToConsole(client,"%T","Admin ID found, but no required flag",client);
+							if(No_Message==false)
+							{
+								War3_ChatMessage(client,"%T","Restricted race, ask an admin on how to unlock",GetTrans());
+								PrintToConsole(client,"%T","Admin ID found, but no required flag",client);
+							}
 							return W3Deny();
 						}
 					}
@@ -98,7 +110,10 @@ public OnW3Denyable(W3DENY:event,client){
 				{
 					//if(!W3IsDeveloper(client)){
 					//	DP("racerestricitons.sp");
-					War3_ChatMessage(client,"%T","Race limit for your team has been reached, please select a different race. (MAX {amount})",GetTrans(),W3GetRaceMaxLimitTeam(race_selected,GetClientTeam(client)));
+					if(No_Message==false)
+					{
+						War3_ChatMessage(client,"%T","Race limit for your team has been reached, please select a different race. (MAX {amount})",GetTrans(),W3GetRaceMaxLimitTeam(race_selected,GetClientTeam(client)));
+					}
 				
 					new cvar=W3GetRaceMaxLimitTeamCvar(race_selected,GetClientTeam(client));
 					new String:cvarstr[64];
@@ -148,11 +163,14 @@ enum TFClassType
 				if(W3FindStringInCvar(cvarid,classstring,2))
 				{
 					//DP("deny");
-					War3_ChatMessage(client,"Race restricted due to class restriction: %s",classstring);
+					if(No_Message==false)
+					{
+						War3_ChatMessage(client,"Race restricted due to class restriction: %s",classstring);
+					}
 					return W3Deny();
 				}
 			}
-		
+
 		//DP("passed");
 	
 		}

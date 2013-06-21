@@ -12,6 +12,9 @@ new String:itemName[MAXITEMS][64];
 new String:itemShortname[MAXITEMS][16];
 new String:itemDescription[MAXITEMS][512];
 
+// So that only these classes can see the item and buy it.
+new bool:itemClassShopmenu[MAXITEMS][10];
+
 new itemGoldCost[MAXITEMS];
 new itemMoneyCost[MAXITEMS];
 new itemProperty[MAXITEMS][W3ItemProp] ;
@@ -44,7 +47,10 @@ public bool:InitNativesForwards()
 
 	CreateNative("War3_CreateShopItem",NWar3_CreateShopItem);
 	CreateNative("War3_CreateShopItemT",NWar3_CreateShopItemT);
-	
+
+	CreateNative("War3_TFSetItemClasses",NWar3_SetItemClasses);
+	CreateNative("War3_TFIsItemClass",NWar3_IsItemClass);
+
 	CreateNative("War3_SetItemProperty",NWar3_SetItemProperty);	
 	CreateNative("War3_GetItemProperty",NWar3_GetItemProperty);
 	
@@ -101,6 +107,106 @@ public NWar3_CreateShopItemT(Handle:plugin,numParams)
 	Format(buf,sizeof(buf),"w3s.item.%s.phrases",shortname);
 	LoadTranslations(buf);
 	return itemid;
+}
+
+public NWar3_SetItemClasses(Handle:plugin,numParams)
+{
+	//decl String:name[64],String:shortname[16],String:desc[512];
+	//GetNativeString(1,name,sizeof(name));
+	//GetNativeString(2,shortname,sizeof(shortname));
+	//GetNativeString(3,desc,sizeof(desc));
+	new itemid = GetNativeCell(1);
+	new bool:itemClassExists=false;
+	for(new i=2; i <= numParams; i++)
+	{
+		switch(GetNativeCellRef(i))
+		{
+			case TFClass_Unknown:
+			{
+				itemClassShopmenu[itemid][0]=true;
+				itemClassExists=true;
+			}
+			case TFClass_Scout:
+			{
+				itemClassShopmenu[itemid][1]=true;
+				itemClassExists=true;
+			}
+			case TFClass_Sniper:
+			{
+				itemClassShopmenu[itemid][2]=true;
+				itemClassExists=true;
+			}
+			case TFClass_Soldier:
+			{
+				itemClassShopmenu[itemid][3]=true;
+				itemClassExists=true;
+			}
+			case TFClass_DemoMan:
+			{
+				itemClassShopmenu[itemid][4]=true;
+				itemClassExists=true;
+			}
+			case TFClass_Medic:
+			{
+				itemClassShopmenu[itemid][5]=true;
+				itemClassExists=true;
+			}
+			case TFClass_Heavy:
+			{
+				itemClassShopmenu[itemid][6]=true;
+				itemClassExists=true;
+			}
+			case TFClass_Pyro:
+			{
+				itemClassShopmenu[itemid][7]=true;
+				itemClassExists=true;
+			}
+			case TFClass_Spy:
+			{
+				itemClassShopmenu[itemid][8]=true;
+				itemClassExists=true;
+			}
+			case TFClass_Engineer:
+			{
+				itemClassShopmenu[itemid][9]=true;
+				itemClassExists=true;
+			}
+		}
+	}
+	// If the item does not have a setting, then all classes can use it.
+	if(itemClassExists==false)
+	{
+	// Set for all
+		for(new x=0; x <= 9; x++)
+		{
+			itemClassShopmenu[itemid][x]=true;
+		}
+	}
+}
+
+public NWar3_IsItemClass(Handle:plugin,numParams)
+{
+	new itemid = GetNativeCell(1);
+	new iPlayerClass = GetNativeCell(2);
+
+	//DP("itemid %i iPlayerClass %b",itemid,itemClassShopmenu[itemid][iPlayerClass]);
+
+	if(itemClassShopmenu[itemid][0]==true)
+		return true;
+
+	new bool:itemClassSet=false;
+
+	//Check if itemClass was set?
+	for(new x=0; x <= 9; x++)
+	{
+		if(itemClassShopmenu[itemid][x]==true)
+			itemClassSet=true;
+	}
+
+	if (!itemClassSet)
+		return true
+	else
+		return itemClassShopmenu[itemid][iPlayerClass];
 }
 
 public NWar3_SetItemProperty(Handle:plugin,numParams)
@@ -249,10 +355,10 @@ CreateNewItem(String:titemname[] ,String:titemshortname[] ,String:titemdescripti
 	itemOrderCvar[titemid]=W3CreateCvarInt(cvarstr,titemid*100,"item order");
 	
 	Format(cvarstr,sizeof(cvarstr),"%s_itemflags",titemshortname);
-	itemFlagsCvar[titemid]=W3CreateCvar(cvarstr,"","item flags");
+	itemFlagsCvar[titemid]=W3CreateCvar(cvarstr,"0","item flags");
 	
 	Format(cvarstr,sizeof(cvarstr),"%s_itemcategory",titemshortname);
-	itemCategoryCvar[titemid]=W3CreateCvar(cvarstr,"","item category");
+	itemCategoryCvar[titemid]=W3CreateCvar(cvarstr,"0","item category");
 	
 	return titemid; //this will be the new item's id / index
 }

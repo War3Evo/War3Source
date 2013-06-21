@@ -3,7 +3,7 @@
 #pragma semicolon 1
 
 #include <sourcemod>
-#include <sdkhooks>
+#include "W3SIncs/sdkhooks"
 #include "W3SIncs/War3Source_Interface"
 
 public Plugin:myinfo= 
@@ -52,14 +52,14 @@ public OnWar3EventDeath(client){
 public Action:CheckHP(Handle:h,any:client){
 //DP("TIMERHIT");
 	mytimer[client]=INVALID_HANDLE;
-	if(ValidPlayer(client,true) && !bHealthAddedThisSpawn[client]){
-		new buff1=W3GetBuffSumInt(client,iAdditionalMaxHealth);
+	//if(ValidPlayer(client,true) && !bHealthAddedThisSpawn[client] && !W3GetBuffHasTrue(client,fHPRegenDeny)){
+	if(ValidPlayer(client,true) && !bHealthAddedThisSpawn[client] && !W3GetBuffHasTrue(client,fHPRegenDeny)){
+		new hpadd=W3GetBuffSumInt(client,iAdditionalMaxHealth);
 		//if(!IsFakeClient(client))
 		//DP("oroginal %d, additonal %d",ORIGINALHP[client],hpadd);
 		new curhp=GetClientHealth(client);
-		SetEntityHealth(client,curhp+buff1);
-		new buff2=W3GetBuffSumInt(client,iAdditionalMaxHealthNoHPChange);
-		War3_SetMaxHP_INTERNAL(client,ORIGINALHP[client]+buff1+buff2); //set max hp
+		SetEntityHealth(client,curhp+hpadd);
+		War3_SetMaxHP_INTERNAL(client,ORIGINALHP[client]+hpadd);
 		//if(!IsFakeClient(client))
 		//DP("CheckHP was curhp %d, set to %d",curhp,GetClientHealth(client));
 		LastDamageTime[client]=GetEngineTime()-100.0;
@@ -70,7 +70,7 @@ new Handle:mytimer2[MAXPLAYERSCUSTOM];
 public OnWar3Event(W3EVENT:event,client){
 	if(event==OnBuffChanged)
 	{
-		if(W3GetVar(EventArg1)==iAdditionalMaxHealth &&ValidPlayer(client,true)){
+		if(W3GetVar(EventArg1)==iAdditionalMaxHealth&&ValidPlayer(client,true)){
 			if(mytimer2[client]==INVALID_HANDLE){	
 				mytimer2[client]=CreateTimer(0.1,CheckHPBuffChange,client);
 			}
@@ -102,17 +102,16 @@ public Action:CheckHPBuffChange(Handle:h,any:client){
 		
 		
 		///method 2
+		new oldbuff=War3_GetMaxHP(client)-ORIGINALHP[client];
 		new newbuff=W3GetBuffSumInt(client,iAdditionalMaxHealth);
-		new newbuff2=W3GetBuffSumInt(client,iAdditionalMaxHealthNoHPChange);
-		new oldbuff=War3_GetMaxHP(client)-ORIGINALHP[client]-newbuff2;
-		War3_SetMaxHP_INTERNAL(client,ORIGINALHP[client]+newbuff+newbuff2); //set max hp
-		
+		War3_SetMaxHP_INTERNAL(client,ORIGINALHP[client]+newbuff); //set max hp
 		
 		new newhp=GetClientHealth(client)+newbuff-oldbuff; //difference
 		if(newhp<1){
 			newhp=1;
 		}
 		//add or decrease health
+		//if(!W3GetBuffHasTrue(client,fHPRegenDeny))  MAYBE ADD FOR BUG FIX
 		SetEntityHealth(client,newhp);
 		//DP("CheckHP2 old %d new %d",oldbuff,newbuff );
 	}

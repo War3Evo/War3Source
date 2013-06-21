@@ -21,6 +21,10 @@ new Handle:FHOnW3TakeDmgAll;
 new Handle:FHOnW3TakeDmgBullet;
 
 new Handle:g_OnWar3EventPostHurtFH;
+new Handle:g_OnWar3EventPostDamage;
+
+new Handle:PyroW3ChanceModifierCvar;
+new Handle:HeavyW3ChanceModifierCvar;
 
 new g_CurDamageType=-99;
 new g_CurInflictor=-99; //variables from sdkhooks, natives retrieve them if needed
@@ -42,6 +46,8 @@ static const String:CLASSNAME_WITCH[]	 	= "witch";
 
 new dummyresult;
 
+//global
+new ownerOffset;
 
 new damagestack=0;
 
@@ -60,11 +66,20 @@ public Plugin:myinfo=
 
 public OnPluginStart()
 {
+	CreateConVar("war3evo_DamageSystem",PLUGIN_VERSION,"War3evo Damage System",FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_DONTRECORD);
+	if(GameTF())
+	{
+		PyroW3ChanceModifierCvar=CreateConVar("war3_pyro_w3chancemod","0.500","Float 0.0 - 1.0");
+		HeavyW3ChanceModifierCvar=CreateConVar("war3_heavy_w3chancemod","0.666","Float 0.0 - 1.0");
+	}
+
 	HookEvent("player_hurt", EventPlayerHurt);
 	if(War3_IsL4DEngine())
 	{
 		HookEvent("infected_hurt", EventInfectedHurt);
 	}
+	if(GameTF())
+		ownerOffset = FindSendPropInfo("CBaseObject", "m_hBuilder");
 }
 
 //cvar handle
@@ -86,6 +101,9 @@ public bool:InitNativesForwards()
 
 	CreateNative("W3ChanceModifier",Native_W3ChanceModifier);
 
+	if(!GameTF())
+		CreateNative("W3IsOwnerSentry",Native_W3IsOwnerSentry);
+
 
 	FHOnW3TakeDmgAllPre=CreateGlobalForward("OnW3TakeDmgAllPre",ET_Hook,Param_Cell,Param_Cell,Param_Cell);
 	FHOnW3TakeDmgBulletPre=CreateGlobalForward("OnW3TakeDmgBulletPre",ET_Hook,Param_Cell,Param_Cell,Param_Cell);
@@ -94,20 +112,19 @@ public bool:InitNativesForwards()
 
 	
 	g_OnWar3EventPostHurtFH=CreateGlobalForward("OnWar3EventPostHurt",ET_Ignore,Param_Cell,Param_Cell,Param_Cell,Param_Cell);
+	g_OnWar3EventPostDamage=CreateGlobalForward("OnWar3EventPostDamage",ET_Ignore,Param_Cell,Param_Cell,Param_Cell,Param_Float,Param_Cell,Param_Cell,Param_Cell);	
 
 
 	ChanceModifierSentry=CreateConVar("war3_chancemodifier_sentry","","None to use attack rate dependent chance modifier. Set from 0.0 to 1.0 chance modifier for sentry, this will override time dependent chance modifier");
 	ChanceModifierSentryRocket=CreateConVar("war3_chancemodifier_sentryrocket","","None to use attack rate dependent chance modifier. Set from 0.0 to 1.0 chance modifier for sentry, this will override time dependent chance modifier");
-	
-	
-	
+
 	return true;
 }
 
 public Native_War3_DamageModPercent(Handle:plugin,numParams)
 {
 	if(!g_CanSetDamageMod){
-		LogError("    ");
+		LogError("	");
 		ThrowError("You may not set damage mod percent here, use ....Pre forward");
 		//W3LogError("You may not set damage mod percent here, use ....Pre forward");
 		//PrintPluginError(plugin);
@@ -151,26 +168,71 @@ public OnEntityCreated(entity, const String:classname[])
 
 public OnClientPutInServer(client){
 	SDKHook(client,SDKHook_OnTakeDamage,SDK_Forwarded_OnTakeDamage);
+	SDKHook(client,SDKHook_OnTakeDamagePost,SDK_Forwarded_OnTakeDamage_Post);
 }
 public OnClientDisconnect(client){
 	SDKUnhook(client,SDKHook_OnTakeDamage,SDK_Forwarded_OnTakeDamage); 
+	SDKUnhook(client,SDKHook_OnTakeDamagePost,SDK_Forwarded_OnTakeDamage_Post); 
 }
 
+public Native_W3IsOwnerSentry(Handle:plugin,numParams)
+{
+	if(!GameTF())
+		return false;
+	new client=GetNativeCell(1);
+	new bool:UseInternalInflictor=GetNativeCell(2);
+	new pSentry;
+	if(UseInternalInflictor)
+		pSentry=g_CurInflictor;
+	else
+		pSentry=GetNativeCell(3);
+
+	if(ValidPlayer(client))
+	{
+		if(IsValidEntity(pSentry)&&TF2_GetPlayerClass(client)==TFClass_Engineer)
+		{
+			decl String:netclass[32];
+			GetEntityNetClass(pSentry, netclass, sizeof(netclass));
+
+			if (strcmp(netclass, "CObjectSentrygun") == 0 || strcmp(netclass, "CObjectTeleporter") == 0 || strcmp(netclass, "CObjectDispenser") == 0)
+			{
+	if (GetEntDataEnt2(pSentry, ownerOffset) == client)
+		return true;
+			}
+		}
+	}
+	return false;
+}
 
 public Native_W3ChanceModifier(Handle:plugin,numParams)
 {
-	
+
 	new attacker=GetNativeCell(1);
 	//new inflictor=W3GetDamageInflictor();
 	//new damagetype=W3GetDamageType();
 	if(!GameTF()||attacker<=0 || attacker>MaxClients || !IsValidEdict(attacker)){
 		return _:1.0;
 	}
-	
-	
+
+	if(GameTF())
+	{
+		new Float:tempChance = GetRandomFloat(0.0,1.0);
+		switch (TF2_GetPlayerClass(attacker))
+		{
+			case TFClass_Heavy:
+			{
+				if (tempChance <= GetConVarFloat(HeavyW3ChanceModifierCvar)) //heavy cvar here, replaces 0.666
+					return _:0.0;
+			}
+			case TFClass_Pyro:
+			{
+				if (tempChance <= GetConVarFloat(PyroW3ChanceModifierCvar)) //pyro cvar here, replaces 0.500
+					return _:0.0;
+			}
+		}
+	}
 	return _:ChanceModifier[attacker];
 }
-
 
 public Action:SDK_Forwarded_OnTakeDamage(victim,&attacker,&inflictor,&Float:damage,&damagetype)
 {
@@ -371,6 +433,53 @@ public EventPlayerHurt(Handle:event,const String:name[],bool:dontBroadcast)
 	g_CurLastActualDamageDealt=damage;
 }
 
+//( victim, &attacker, &inflictor, &Float:damage, &damageType, &weapon, Float:damageForce[3], Float:damagePosition[3] )
+public SDK_Forwarded_OnTakeDamage_Post( victim, attacker, inflictor, Float:damage, damageType )
+{
+	//new victim_userid=victim;
+	//new attacker_userid=attacker;
+	//PrintToChatAll("Damage System OnTakeDamage_Post Triggered!");
+	
+	new idamage=RoundToNearest(damage);
+	
+	#if defined DEBUG
+	DP2("PlayerHurt %d->%d  dmg [%d] ",attacker,victim,idamage);
+	#endif
+	damagestack++;
+	
+	new bool:old_CanDealDamage=g_CanDealDamage;
+	g_CanSetDamageMod=true;
+	
+	//do the forward
+	Call_StartForward(g_OnWar3EventPostDamage);
+	Call_PushCell(victim);
+	Call_PushCell(attacker);
+	Call_PushCell(inflictor);
+	Call_PushFloat(damage);
+	Call_PushCell(idamage);
+	Call_PushCell(damageType);
+	Call_PushCell(g_CurDamageIsWarcraft);
+	Call_Finish(dummyresult);
+
+	g_CanDealDamage=old_CanDealDamage;
+
+	damagestack--;
+	#if defined DEBUG
+	
+	DP2("PlayerHurt %d->%d  dmg [%d] END ",attacker,victim,idamage);
+	
+	if(	damagestack==0){
+	
+	PrintToServer("   ");
+	PrintToChatAll("   ");
+	PrintToServer("   ");
+	PrintToChatAll("   ");
+	}
+	#endif
+	
+	g_CurLastActualDamageDealt=idamage;
+}
+
 
 public EventInfectedHurt(Handle:event,const String:name[],bool:dontBroadcast)
 {
@@ -410,7 +519,7 @@ stock DP2(const String:szMessage[], any:...)
 	new String:szBuffer[1000];
 	new String:pre[132];
 	for(new i=0;i<damagestack;i++){
-		StrCat(pre,sizeof(pre),"    ");
+		StrCat(pre,sizeof(pre),"	");
 	}
 	VFormat(szBuffer, sizeof(szBuffer), szMessage, 2);
 	PrintToServer("[DP2] %s%s %s",pre,szBuffer,W3GetDamageIsBullet()?"B":"",!g_NextDamageIsWarcraftDamage?"NB":"");
@@ -433,14 +542,14 @@ stock DP2(const String:szMessage[], any:...)
 
 //dealdamage reaches far into the stack:
 /*
-[DP2]     playerHurt 1->10  dmg [34]  B
-[DP2]     dealdamage 10->1 { 
-[DP2]         sdktakedamage 10->1 atrace Night Elf damage [6.00] 
-[DP2]         sdktakedamage 10->1 END dmg [6.00] 
-[DP2]         PlayerHurt 10->1  dmg [3]  
-[DP2]         PlayerHurt 10->1  dmg [3] END  
-				^^^^coplies the damage to global
-[DP2]     dealdamage 10->1 } B
+[DP2]	 playerHurt 1->10  dmg [34]  B
+[DP2]	 dealdamage 10->1 { 
+[DP2]		 sdktakedamage 10->1 atrace Night Elf damage [6.00] 
+[DP2]		 sdktakedamage 10->1 END dmg [6.00] 
+[DP2]		 PlayerHurt 10->1  dmg [3]  
+[DP2]		 PlayerHurt 10->1  dmg [3] END  
+	^^^^coplies the damage to global
+[DP2]	 dealdamage 10->1 } B
 [*/
 public Native_War3_DealDamage(Handle:plugin,numParams)
 {
@@ -451,7 +560,7 @@ public Native_War3_DealDamage(Handle:plugin,numParams)
 		noWarning = GetNativeCell(9);
 	
 	if(!g_CanDealDamage && !noWarning){
-		LogError("    ");
+		LogError("	");
 		ThrowError("War3_DealDamage called when DealDamage is not suppose to be called, please use the non PRE forward");
 		//LogError("War3_DealDamage called when DealDamage is not suppose to be called, please use the non PRE forward");
 		//W3LogError("War3_DealDamage called when DealDamage is not suppose to be called, please use the non PRE forward");
@@ -511,7 +620,7 @@ public Native_War3_DealDamage(Handle:plugin,numParams)
 						return false;
 					}
 				}
-				
+	
 			}
 			
 			
@@ -553,7 +662,6 @@ public Native_War3_DealDamage(Handle:plugin,numParams)
 		g_NextDamageIsTrueDamage=(WAR3_DMGTYPE==W3DMGTYPE_TRUEDMG);
 		g_CurDamageIsTrueDamage=(WAR3_DMGTYPE==W3DMGTYPE_TRUEDMG);
 		
-
 
 		#if defined DEBUG
 		DP2("dealdamage %d->%d {",attacker,victim);
