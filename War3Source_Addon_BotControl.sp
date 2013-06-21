@@ -120,7 +120,19 @@ public OnW3TakeDmgAllPre(victim, attacker, Float:damage)
 // ########################## BOT RACE/LEVEL SCRAMBLER ###################
 public Event_ScrambleNow(Handle:event, const String:name[], bool:dontBroadcast)
 {
-	if(GetConVarBool(botScrambleRound))
+	new bool:BotsExist=false;
+	for(new players = 1; players <= MaxClients; ++players)
+	{
+		if(ValidPlayer(players))
+		{
+			if(IsFakeClient(players))
+				BotsExist=true;
+		}
+	}
+
+	//Why scramblebots that doesn't exist?
+	//lets scramble bots if they do exist.
+	if(GetConVarBool(botScrambleRound)&&BotsExist)
 		ScrambleBots();
 }
 
