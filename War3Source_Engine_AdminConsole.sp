@@ -29,6 +29,8 @@ public OnPluginStart()
 	RegConsoleCmd("war3_setgold",War3Source_CMD_War3_SetGold,"Set a player's gold count");
 	RegConsoleCmd("war3_givegold",War3Source_CMD_GiveGold,"Give a player gold");
 	RegConsoleCmd("war3_removegold",War3Source_CMD_RemoveGold,"Remove some gold from a player");
+	RegConsoleCmd("war3_setdiamonds",War3Source_CMD_SetDiamonds,"Set a player's diamonds");
+
 
 }
 
@@ -448,6 +450,52 @@ public Action:War3Source_CMD_War3_SetGold(client,args)
 			PrintToConsole(client,"%T","[War3Source] You just set player {player} gold to {amount}",client,name,gold);
 			War3_ChatMessage(playerlist[x],"%T","Admin {player} set your gold to {amount}",playerlist[x],adminname,gold);
 		
+		}
+		if(results==0)
+			PrintToConsole(client,"%T","[War3Source] No players matched your query",client);
+
+	}
+	return Plugin_Handled;
+}
+
+//War3Source_CMD_SetDiamonds
+public Action:War3Source_CMD_SetDiamonds(client,args)
+{
+	if(client!=0&&!HasSMAccess(client,ADMFLAG_RCON)){
+		ReplyToCommand(client,"No Access");
+	}
+	else if(args!=2)
+		PrintToConsole(client,"[War3Source] The syntax of the command is: war3_setdiamonds <player> <gold>");
+	else
+	{
+		decl String:match[64];
+		GetCmdArg(1,match,sizeof(match));
+		decl String:buf[32];
+		GetCmdArg(2,buf,sizeof(buf));
+		//new maxgold=W3GetMaxGold();
+		new String:adminname[64];
+		if(client!=0)
+			GetClientName(client,adminname,sizeof(adminname));
+		else
+			adminname="Console";
+		new gold=StringToInt(buf);
+		if(gold<0)
+			gold=0;
+		//if(gold>maxgold)
+		//	gold=maxgold;
+
+		new playerlist[66];
+		new results=War3Source_PlayerParse(match,playerlist);
+		for(new x=0;x<results;x++)
+		{
+			decl String:name[64];
+			GetClientName(playerlist[x],name,sizeof(name));
+
+
+			War3_SetDiamonds(playerlist[x],gold);
+			PrintToConsole(client,"[War3Source] You just set player %s diamonds to %i",name,gold);
+			War3_ChatMessage(playerlist[x],"%T","Admin {player} set your diamonds to {amount}",playerlist[x],adminname,gold);
+
 		}
 		if(results==0)
 			PrintToConsole(client,"%T","[War3Source] No players matched your query",client);
