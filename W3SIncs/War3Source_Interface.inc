@@ -109,12 +109,15 @@ public W3SetForwarededVar(index,value) {
 	//DP("forwarded %d %d",index,value);
 	W3ForwarededVars[index]=value;
 }
-stock EXT() {
-	return W3ForwarededVars[EXTAvailable];
-}
+//stock EXT() {
+//	return W3ForwarededVars[EXTAvailable];
+//}
 
 //INTERFACE ONLY VARIABLES, use for determining game type
 stock tValveGame;
+
+
+// Removed in my version, but keeping as backward compatibility
 stock bool:bWar3Mode;
 stock bool:bSHMode;
 stock W3() {
@@ -129,29 +132,6 @@ stock ValveGameEnum:War3_GetGame() {
 
 //Do not manually call this, this determines the game mode and is called internally in the API
 stock DetermineGameMode() {
-	//DETERMIE GAME MODE
-#if defined WAR3MAIN
-	PrintToServer("[SH] READING shsourcemode.cfg trying to find 'shsource' in the file");
-#endif
-	new Handle:file=OpenFile("cfg/shsourcemode.cfg", "a+"); //creates new file if one not exists
-
-	bWar3Mode = true; //default
-	bSHMode = false; //default
-	new String:buffer[256];
-	while (ReadFileLine(file, buffer, sizeof(buffer))) {
-		if (strncmp(buffer, "shsource", strlen("shsource"), false) == 0) {
-			bWar3Mode = false;
-			bSHMode = true;
-#if defined WAR3MAIN
-			PrintToServer("[SH] SHSource MODE ENABLED");
-#endif
-			break;
-		}
-	}
-	CloseHandle( file);
-#if defined WAR3MAIN
-	PrintToServer("[SH] FINISHED READING shsourcemode.cfg");
-#endif
 
 	//DETERMINE GAME TYPE: CS TF ETC
 	new String:gameDir[64];
@@ -254,38 +234,14 @@ stock bool:War3_IsCounterStrike() {
  */
 
 stock GlobalOptionalNatives() {
-	MarkNativeAsOptional("SHHasHero");
-	MarkNativeAsOptional("SHGetHeroesClientCanHave");
-	MarkNativeAsOptional("SHHasHero");
-
 	MarkNativeAsOptional("W3GetReqXP");
-	MarkNativeAsOptional("SHGetReqXP");
 
 	MarkNativeAsOptional("War3_ShowXP");
-	MarkNativeAsOptional("SHShowXP");
 
 	MarkNativeAsOptional("W3SaveXP");
-	MarkNativeAsOptional("SHSaveXP");
 
 	MarkNativeAsOptional("War3Failed");
 
-	///omfg
-	MarkNativeAsOptional("SHHasHero");
-	MarkNativeAsOptional("SHSetHasHero");
-	MarkNativeAsOptional("SHGetHeroHasPowerBind");
-	MarkNativeAsOptional("SHSetHeroHasPowerBind");
-	MarkNativeAsOptional("SHGetLevel");
-	MarkNativeAsOptional("SHSetLevel");
-	MarkNativeAsOptional("SHGetXP");
-	MarkNativeAsOptional("SHSetXP");
-	MarkNativeAsOptional("SHShowXP");
-	MarkNativeAsOptional("SHGetReqXP");
-	MarkNativeAsOptional("SHGetHeroesClientCanHave");
-	MarkNativeAsOptional("SHGetPowerBind");
-	MarkNativeAsOptional("SHSetPowerBind");
-	MarkNativeAsOptional("SHMaxLevel");
-	MarkNativeAsOptional("SHSaveXP");
-	MarkNativeAsOptional("SHTryToGiveClientHero");
 	MarkNativeAsOptional("OurTestNative");
 	MarkNativeAsOptional("OurTestNative2");
 	MarkNativeAsOptional("W3ExtVersion");
@@ -325,8 +281,11 @@ stock GlobalOptionalNatives() {
 	MarkNativeAsOptional("W3IsRaceTranslated");
 	MarkNativeAsOptional("W3GetVar");
 	MarkNativeAsOptional("W3SetVar");
+	// Shopmenu
 	MarkNativeAsOptional("War3_CreateShopItem");
 	MarkNativeAsOptional("War3_CreateShopItemT");
+	MarkNativeAsOptional("War3_TFSetItemClasses");
+	MarkNativeAsOptional("War3_TFIsItemClass");
 	MarkNativeAsOptional("War3_SetItemProperty");
 	MarkNativeAsOptional("War3_GetItemProperty");
 	MarkNativeAsOptional("War3_GetItemIdByShortname");
@@ -340,12 +299,13 @@ stock GlobalOptionalNatives() {
 	MarkNativeAsOptional("W3GetItemsLoaded");
 	MarkNativeAsOptional("W3IsItemDisabledGlobal");
 	MarkNativeAsOptional("W3IsItemDisabledForRace");
+	// Shopmenu 2
 	MarkNativeAsOptional("War3_CreateShopItem2");
 	MarkNativeAsOptional("War3_CreateShopItem2T");
 	MarkNativeAsOptional("War3_SetItem2Property");
 	MarkNativeAsOptional("War3_GetItem2Property");
 	MarkNativeAsOptional("War3_GetItem2IdByShortname");
-	MarkNativeAsOptional("W3CreateShopItem2");
+	//MarkNativeAsOptional("W3CreateShopItem2");
 	MarkNativeAsOptional("W3GetItem2Name");
 	MarkNativeAsOptional("W3GetItem2Shortname");
 	MarkNativeAsOptional("W3GetItem2Desc");
@@ -353,7 +313,7 @@ stock GlobalOptionalNatives() {
 	MarkNativeAsOptional("W3GetItem2Order");
 	MarkNativeAsOptional("W3Item2HasFlag");
 	MarkNativeAsOptional("W3GetItem2Catagory");
-	MarkNativeAsOptional("W3GetItems2LoadedEXT");
+	MarkNativeAsOptional("W3GetItems2Loaded");
 	MarkNativeAsOptional("W3IsItem2DisabledGlobal");
 	MarkNativeAsOptional("W3IsItem2DisabledForRace");
 	MarkNativeAsOptional("W3SaveItem2ExpireTime");
@@ -365,10 +325,11 @@ stock GlobalOptionalNatives() {
 	MarkNativeAsOptional("War3_ShowXP");
 	MarkNativeAsOptional("W3GetMaxGold");
 	MarkNativeAsOptional("War3_RestoreItemsFromDeath");
+	MarkNativeAsOptional("War3_IsInSteamGroup");
 	MarkNativeAsOptional("War3_GetOwnsItem");
 	MarkNativeAsOptional("War3_GetOwnsItem2");
-	MarkNativeAsOptional("W3GetItem2ExpireTime");
-	MarkNativeAsOptional("W3SetItem2ExpireTime");
+//	MarkNativeAsOptional("W3GetItem2ExpireTime");
+//	MarkNativeAsOptional("W3SetItem2ExpireTime");
 	MarkNativeAsOptional("War3_SetOwnsItem");
 	MarkNativeAsOptional("War3_SetOwnsItem2");
 	MarkNativeAsOptional("War3_GetTargetInViewCone");
@@ -433,6 +394,7 @@ stock GlobalOptionalNatives() {
 	MarkNativeAsOptional("W3GetDamageType");
 	MarkNativeAsOptional("W3GetDamageInflictor");
 	MarkNativeAsOptional("W3ChanceModifier");
+	MarkNativeAsOptional("W3IsOwnerSentry");
 	MarkNativeAsOptional("W3Hint");
 	MarkNativeAsOptional("War3_GetRace");
 	MarkNativeAsOptional("War3_SetRace");
@@ -466,11 +428,12 @@ stock GlobalOptionalNatives() {
 	MarkNativeAsOptional("CreateWar3GlobalError");
 	MarkNativeAsOptional("W3CreateEvent");
 
-	MarkNativeAsOptional("War3_SetDiamondsEXT");
-	MarkNativeAsOptional("War3_GetDiamondsEXT");
-	MarkNativeAsOptional("War3_GetOwnsItem2EXT");
-	MarkNativeAsOptional("War3_SetOwnsItem2EXT");
-	MarkNativeAsOptional("W3ExtShowShop2");
+	//MarkNativeAsOptional("War3_SetDiamondsEXT");
+	//MarkNativeAsOptional("War3_GetDiamondsEXT");
+	//MarkNativeAsOptional("War3_GetOwnsItem2EXT");
+	//MarkNativeAsOptional("War3_SetOwnsItem2EXT");
+	//MarkNativeAsOptional("W3ExtShowShop2");
+
 	// L4D
 	MarkNativeAsOptional("War3_L4D_IsHelpless");
 	// Skills
@@ -510,6 +473,14 @@ stock GlobalOptionalNatives() {
 	//Custom Models (CS:S only)
 	MarkNativeAsOptional("War3_AddCustomModel");
 	MarkNativeAsOptional("War3_RemoveCustomModel");
+
+	MarkNativeAsOptional("War3_RaceBeforePluginStart");
+	MarkNativeAsOptional("War3_RaceOnPluginEnd");
+	MarkNativeAsOptional("War3_IsRaceReloading");
+	
+	MarkNativeAsOptional("War3_GetLevelEx");
+	
+
 }
 
 //Called for each category if the user opens the catted cr menu
@@ -586,14 +557,20 @@ native bool:War3_InFreezeTime();
 
 //creates a new race, returns the race id
 //a valid race is >0
-native War3_CreateNewRace(String:name[],String:shortname[]);
+native War3_CreateNewRace(String:name[],String:shortname[],reload_race_id=0);
+
+
+// Makes it so that your races are reloadable
+native War3_RaceOnPluginStart(String:shortname[16]);
+native War3_RaceOnPluginEnd(String:shortname[16]);
+native bool:War3_IsRaceReloading();
 
 //adds a skill or a ultimate
 native War3_AddRaceSkill(raceid,String:tskillorultname[],String:tskillorultdescription[],bool:isult=false,maxskilllevel=DEF_MAX_SKILL_LEVEL);
 
 //translated
 //creates a new race, returns the race id
-native War3_CreateNewRaceT(String:shortname[]);
+native War3_CreateNewRaceT(String:shortname[],reload_race_id=0);
 
 //translated
 //adds a skill or a ultimate
@@ -676,6 +653,53 @@ native War3_CreateShopItem(String:name[],String:shortname[],String:desc[],costgo
 //translated
 native War3_CreateShopItemT(String:shortname[],costgold,costmoney);
 
+
+/*
+ War3_TFSetItemClasses(itemid, and then use ItemClassString separted by comma )
+
+ example:
+
+ War3_TFSetItemClasses(itemid,sniper,medic,scout)
+
+if you want all classes then don't assign anything OR you can use:
+War3_TFSetItemClasses(itemid,all)
+
+ As many classes that you want this item to have access to.
+
+enum ItemClassString
+{
+	all = TFClass_Unknown,
+	scout = TFClass_Scout,
+	sniper = TFClass_Sniper,
+	soldier = TFClass_Soldier,
+	demoman = TFClass_DemoMan,
+	medic = TFClass_Medic,
+	heavy = TFClass_Heavy,
+	pyro = TFClass_Pyro,
+	spy = TFClass_Spy,
+	engineer = TFClass_Engineer
+}
+*/
+native War3_TFSetItemClasses(itemid,any:...);
+// If TFClassType is set for TFClass_Unknown, then all classes have access to this item.
+// use  War3_TFIsItemClass(itemid,TF2_GetPlayerClass(client));
+/*
+01: enum TFClassType
+02: {
+03:     TFClass_Unknown = 0,
+04:     TFClass_Scout,
+05:     TFClass_Sniper,
+06:     TFClass_Soldier,
+07:     TFClass_DemoMan,
+08:     TFClass_Medic,
+09:     TFClass_Heavy,
+10:     TFClass_Pyro,
+11:     TFClass_Spy,
+12:     TFClass_Engineer
+13: };*/
+native War3_TFIsItemClass(itemid,TFClassType:iPlayerClass);
+
+
 //see W3ItemProp enum for available properties
 native War3_SetItemProperty(itemid,W3ItemProp:ITEM_PROPERTY,value);
 native War3_GetItemProperty(itemid,W3ItemProp:ITEM_PROPERTY);
@@ -688,6 +712,9 @@ native W3GetItemName(itemid,String:ret[],maxlen);
 native W3GetItemShortname(itemid,String:ret[],maxlen);
 native W3GetItemDescription(itemid,String:ret[],maxlen);
 
+native GetClientItems2Owned(client);
+native GetMaxShopitems2PerPlayer();
+
 native W3GetItemCost(itemid,bool:csmoney);
 native W3GetItemOrder(itemid);
 native W3ItemHasFlag(itemid,String:flagsearch[]);
@@ -697,14 +724,19 @@ native W3GetItemsLoaded(); //how many items are loaded?
 native bool:W3IsItemDisabledGlobal(itemid);
 native bool:W3IsItemDisabledForRace(race,itemid);
 
-//Shopmenu 2 item class
-//native War3_CreateShopItem2(String:name[],String:shortname[],String:desc[],cost);
-native W3CreateShopItem2(String:name[],String:shortname[],String:desc[],cost,translated=false);
-//translated
-stock W3CreateShopItem2T(String:shortname[],cost) {
-	return W3CreateShopItem2("",shortname,"",cost,true);
 
-}
+
+
+
+//Shopmenu 2 item class
+native War3_CreateShopItem2(String:name[],String:shortname[],String:desc[],cost);
+native War3_CreateShopItem2T(String:shortname[],cost);
+
+//native W3CreateShopItem2(String:name[],String:shortname[],String:desc[],cost,translated=false);
+//translated
+//stock W3CreateShopItem2T(String:shortname[],cost) {
+//	return W3CreateShopItem2("",shortname,"",cost,true);
+//}
 
 native War3_SetItem2Property(itemid,W3ItemProp:ITEM_PROPERTY,value);
 native War3_GetItem2Property(itemid,W3ItemProp:ITEM_PROPERTY);
@@ -718,18 +750,15 @@ native W3GetItem2Shortname(itemid,String:ret[],maxlen);
 native W3GetItem2Desc(itemid,String:ret[],maxlen);
 
 native W3GetItem2Cost(itemid);
-//native W3GetItem2Order(itemid);
+native W3GetItem2Order(itemid);
 native W3Item2HasFlag(itemid,String:flagsearch[]);
-//native W3GetItem2Catagory(itemid,String:retcatagorystr[],maxlen);
-native W3GetItems2LoadedEXT();
-stock W3GetItems2Loaded() { //how many items are loaded?
-	return EXT() ? W3GetItems2LoadedEXT() : 0;
-}
+native W3GetItem2Catagory(itemid,String:retcatagorystr[],maxlen);
+native W3GetItems2Loaded();
 
 native bool:W3IsItem2DisabledGlobal(itemid);
 native bool:W3IsItem2DisabledForRace(race,itemid);
 
-native W3ExtShowShop2(client);
+//native W3ExtShowShop2(client);
 
 //Forces a save into database of when the item expires
 //client must own item already
@@ -796,8 +825,12 @@ native War3_SetOwnsItem(client,item,bool:ownsitem);
  */
 native War3_RestoreItemsFromDeath(client,bool:payforit=true,bool:csmoney=false);
 
-native W3GetItem2ExpireTime(client, item);
-native W3SetItem2ExpireTime(client, item, time); //use full linux time , ie: NOW()+duration
+// Checks if a player is in steam group
+// returns true if they are in steam group
+native War3_IsInSteamGroup(client);
+
+//native W3GetItem2ExpireTime(client, item);
+//native W3SetItem2ExpireTime(client, item, time); //use full linux time , ie: NOW()+duration
 
 native bool:W3BuyUseCSMoney();
 
@@ -811,24 +844,8 @@ native bool:W3BuyUseCSMoney();
  *	ITEM IS NOT LOST AUTOMATICALLY ON DEATH  
  */
 
-native War3_GetOwnsItem2EXT(client, item);
-
-native War3_SetOwnsItem2EXT(client,item,bool:ownsitem);
-stock War3_GetOwnsItem2(client, item) {
-	if (EXT()) {
-		if (item < 1) {
-			DP("err invalid item id %d client %d", item, client);
-			ThrowError("asdf");
-		}
-		return War3_GetOwnsItem2EXT(client, item);
-	}
-	return 0;
-}
-stock War3_SetOwnsItem2(client,item,bool:ownsitem) {
-	if(EXT()) {
-		War3_SetOwnsItem2EXT(client,item,bool:ownsitem);
-	}
-}
+native War3_GetOwnsItem2(client, item);
+native War3_SetOwnsItem2(client,item,bool:ownsitem);
 
 /**
  * Finds the best target within a player's view cone
@@ -1203,12 +1220,14 @@ stock War3HealToHP(client, addhp, maximumHP) {
 	if (newhp > maximumHP) {
 		newhp = maximumHP;
 	}
-    
+
 	SetEntityHealth(client, newhp);
-    if (currenthp < newhp)
-    {
-        War3_TFHealingEvent(client, newhp - currenthp);
-    }
+	// below creates a hud above health plus on user screen
+	// quite annoying, so temporary removed
+	//if (currenthp < newhp)
+	//{
+		//War3_TFHealingEvent(client, newhp - currenthp);
+	//}
 }
 
 /**
@@ -1226,14 +1245,15 @@ native War3_DecreaseHP(client, decrease);
 
 // This one is actually used by HealToMaxHP, HealToBuffHP aswell as DecreaseHP
 stock nsEntity_SetHealth(entity, health) {
-    new currenthp = GetEntProp(entity, Prop_Data, "m_iHealth");
+	//new currenthp = GetEntProp(entity, Prop_Data, "m_iHealth");
 	SetEntProp(entity, Prop_Data, "m_iHealth", health);
 	ChangeEdictState(entity, 0);
-    
-    if (currenthp < health)
-    {
-        War3_TFHealingEvent(entity, health - currenthp);
-    }
+	// below creates a hud above health plus on user screen
+	// quite annoying, so temporary removed
+	//if (currenthp < newhp)
+	//{
+		//War3_TFHealingEvent(client, newhp - currenthp);
+	//}
 }
 
 /** 
@@ -1437,7 +1457,28 @@ native W3GetDamageInflictor();
  */
 
 //helper, directly uses last inflictor and damagetype
+// Acts like a DPS limiter
 native Float:W3ChanceModifier(attacker);
+
+/**
+ * Basically checks to see if this is a Owner's sentry.
+ *
+ * best use inside OnW3TakeDmgBullet or OnW3TakeDmgBullet or SDKHooks calls that have inflictors
+ * where you can use this code:
+ *  new inflictor = W3GetDamageInflictor();
+ *  then pass the inflictor as the entity below:
+ *
+ * @param client: client you wish to check as the owner
+ * @param UseInternalInflictor: true if you wish the native to grab the W3GetDamageInflictor for you.
+ *         ^ only use if you are using inside a OnW3TakeDamage function type, else use your own
+ *         (Default true)
+ * @param ExternalInflictor: entity you wish to check that maybe a sentry / optional
+ *        Make sure you put UseInternalInflictor as false.
+ *
+ * @param return: true if the client is the sentry owner and the entity is the owned sentry
+ *
+ */
+native bool:W3IsOwnerSentry(client,bool:UseInternalInflictor=true,ExternalInflictor=0);
 
 //print via hint engine. format accepts translations
 native W3Hint(client,W3HintPriority:type=HINT_LOWEST,Float:duration=5.0,String:format[],any:...);
@@ -1511,6 +1552,7 @@ native War3_SetRace(client, race);
 
 native War3_SetLevel(client, race, level);
 native War3_GetLevel(client, race);
+native War3_GetLevelEx(client, race, bool:trueLevel=false);
 
 native W3GetTotalLevels(client); //sum of  levels in each race
 
@@ -1552,7 +1594,7 @@ native W3GiveXPGold(client,W3XPAwardedBy:awardreason=XPAwardByGeneric,xpamount=0
 ///Creates internal war3 cvars. returns a id to your cvar, store it!
 //cvarid of 0 is null null (filled auto)
 //make sure native have binded (on plugin start is fine)
-native W3CreateCvar(String:cvarstr[],String:cvarvalue[],String:cvardesc[]);
+native W3CreateCvar(String:cvarstr[],String:cvarvalue[],String:cvardesc[],ReplaceCvar=0);
 native W3GetCvar(cvarid,String:returnstr[],maxlen);
 native W3SetCvar(cvarid,String:cvarvalue[]);
 
@@ -1622,19 +1664,14 @@ stock War3_GetGold(client) {
 	return W3GetPlayerProp(client, PlayerGold);
 }
 
-native War3_GetDiamondsEXT(client);
-native War3_SetDiamondsEXT(client, newd);
+//native War3_GetDiamondsEXT(client);
+//native War3_SetDiamondsEXT(client, newd);
 
 stock War3_GetDiamonds(client) {
-	if (EXT()) {
-		return War3_GetDiamondsEXT(client);
-	}
-	return 0;
+	return W3GetPlayerProp(client, PlayerDiamonds);
 }
 stock War3_SetDiamonds(client, newd) {
-	if (EXT()) {
-		War3_SetDiamondsEXT(client, newd);
-	}
+	W3SetPlayerProp(client, PlayerDiamonds, newd);
 }
 
 native W3IsDeveloper(client);
@@ -1855,13 +1892,20 @@ forward OnWar3LoadRaceOrItemOrdered(num);
  * Called when the plugin is ready.
  * this is called many times, increasing num each time 0.0-float(MAXRACES)*10 in 1 increments
  * this is called after all default races have been loaded (OnWar3LoadRaceOrItemOrdered finished)
+ * 
+ * reloadrace_id used by War3_ReloadRace(), can only reload 1 race at a time.
  */
-forward OnWar3LoadRaceOrItemOrdered2(num);
+forward OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[]);
 
 /**
  * Called when the plugin is ready. (after ordered)
  */
 forward OnWar3PluginReady();
+
+/**
+ * Called to send id back to plugin if it changes (usually called on a plugin reload)
+ */
+//forward OnWar3PluginRaceId(String:plugin_shortname[16],reload_raceid);
 
 /**
  * Gets called when after PutInServer, xp retrievcal has started, initial variables may have been set
@@ -1974,8 +2018,9 @@ stock bool:W3Denyable(W3DENY:event,client) {
 }
 native W3Deny();
 
-stock bool:CanSelectRace(client,race) {
+stock bool:CanSelectRace(client,race,bool:silence=false) {
 	W3SetVar(EventArg1,race);
+	W3SetVar(EventArg2,silence);
 	new bool:value=W3Denyable(DN_CanSelectRace,client);
 	//DP("dp %d",value);
 	if(value==false && W3IsDeveloper(client)) {
@@ -1999,12 +2044,19 @@ stock W3DoLevelCheck(client) {
 forward OnWar3EventSpawn(client);
 
 //when player dies, fires only in war3 mode
-forward OnWar3EventDeath(victim, attacker, deathrace);
+//forward OnWar3EventDeath(victim, attacker, deathrace, distance, attacker_hpleft, String:weapon[32]);
+forward OnWar3EventDeath(victim, attacker, deathrace, distance, attacker_hpleft);
 
 //very generic damage event
 //derrived from the game engine's posthurt event
 //FRIENDLY FIRE IS NOT FILTERED
 forward OnWar3EventPostHurt(victim,attacker,dmgamount,bool:isWarcraft);
+
+// From SDK Hooks SDKHook_OnTakeDamagePost
+// Created so we can take into account the after damage including the resistances of wearing steam/valve items
+// Two choices: damage as a float or integer.   Same number, but one is rounded to the nearest integer.
+forward OnWar3EventPostDamage(victim, attacker, inflictor, Float:damage, idamage, damagetype,bool:isWarcraft);
+
 
 //Fired after a player dodges, useful primarily for attaching effects
 forward OnW3DodgePost(victim, attacker);
@@ -2189,7 +2241,8 @@ stock bool:W3HasImmunity(client,War3Immunity:immunityindex) {
 		return W3GetBuffHasTrue(client,bImmunityUltimates);
 	}
 	if(immunityindex==Immunity_Wards) {
-		return W3GetBuffHasTrue(client,bImmunityWards)||W3GetBuffHasTrue(client,bImmunitySkills);
+		//return W3GetBuffHasTrue(client,bImmunityWards)||W3GetBuffHasTrue(client,bImmunitySkills);
+		return W3GetBuffHasTrue(client,bImmunityWards);
 	}
 
 	return false;
@@ -3000,10 +3053,30 @@ stock Float:AbsoluteTime() {
 	return GetEngineTime();
 }
 
+
+stock bool:IsMvM(bool:forceRecalc = false)
+{
+	static bool:found = false;
+	static bool:ismvm = false;
+	if (forceRecalc)
+	{
+		found = false;
+		ismvm = false;
+	}
+	if (!found)
+	{
+		new i = FindEntityByClassname(-1, "tf_logic_mann_vs_machine");
+		if (i > MaxClients && IsValidEntity(i)) ismvm = true;
+		found = true;
+	}
+	return ismvm;
+}
+
 stock CreateTimer_DEBUG(any:f=0,any:ff=0,any:fff=0,any:ffff=0) {}
 
 
 #include "W3SIncs/stocks_precache"
 #include "W3SIncs/War3Source_L4D_Interface"
 #include "W3SIncs/stocks_misc"
+
 
