@@ -36,7 +36,7 @@ public OnPluginStart()
 	HaloSprite=War3_PrecacheHaloSprite();
 }
 
-public OnWar3LoadRaceOrItemOrdered2(num)
+public OnWar3LoadRaceOrItemOrdered(num)
 {
 	if (num==0)
 	{
