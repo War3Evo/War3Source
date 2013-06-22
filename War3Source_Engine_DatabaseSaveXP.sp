@@ -4,13 +4,6 @@
 #include "W3SIncs/War3Source_Interface"
 
 
-
-
-
-
-
-
-
 new Handle:hDB;
 
 new War3SQLType:g_SQLType; 
@@ -37,35 +30,28 @@ public Plugin:myinfo=
 
 public bool:InitNativesForwards()
 {
-	if(W3()){
-		PrintToServer("W3 MODE");
-		CreateNative("W3SaveXP" ,NW3SaveXP)
-		CreateNative("W3SaveEnabled" ,NW3SaveEnabled)
-	}
+	PrintToServer("W3 MODE");
+	CreateNative("W3SaveXP" ,NW3SaveXP)
+	CreateNative("W3SaveEnabled" ,NW3SaveEnabled)
+
 	return true;
 }
 
 public OnPluginStart()
 {
-	if(W3()){
-		m_SaveXPConVar=CreateConVar("war3_savexp","1");
-		W3SetVar(hSaveEnabledCvar,m_SaveXPConVar);
-			
-		hSetRaceOnJoinCvar=CreateConVar("war3_set_race_on_join","1");
-	
-		m_AutosaveTime=CreateConVar("war3_autosavetime","60");
-		hCvarPrintOnSave=CreateConVar("war3_print_on_autosave","0","Print a message to chat when xp is auto saved?");
-	
-		g_OnWar3PlayerAuthedHandle=CreateGlobalForward("OnWar3PlayerAuthed",ET_Ignore,Param_Cell,Param_Cell);
-	
-		
-		
-		
-		CreateTimer(GetConVarFloat(m_AutosaveTime),DoAutosave);
-	}
-	
-}
 
+	m_SaveXPConVar=CreateConVar("war3_savexp","1");
+	W3SetVar(hSaveEnabledCvar,m_SaveXPConVar);
+
+	hSetRaceOnJoinCvar=CreateConVar("war3_set_job_on_join","1");
+
+	m_AutosaveTime=CreateConVar("war3_autosavetime","60");
+	hCvarPrintOnSave=CreateConVar("war3_print_on_autosave","0","Print a message to chat when xp is auto saved?");
+	
+	g_OnWar3PlayerAuthedHandle=CreateGlobalForward("OnWar3PlayerAuthed",ET_Ignore,Param_Cell,Param_Cell);
+
+	CreateTimer(GetConVarFloat(m_AutosaveTime),DoAutosave);
+}
 
 public NW3SaveXP(Handle:plugin,numParams)
 {
@@ -86,12 +72,9 @@ public NW3SaveEnabled(Handle:plugin,numParams)
 public OnWar3Event(W3EVENT:event,client){
 	if(event==DatabaseConnected)
 	{
-		if(W3()){
-			hDB=W3GetVar(hDatabase);
-			g_SQLType=W3GetVar(hDatabaseType);
-		
-			Initialize_SQLTable();
-		}
+		hDB=W3GetVar(hDatabase);
+		g_SQLType=W3GetVar(hDatabaseType);
+		Initialize_SQLTable();
 	}
 	//DP("EVENT %d",event);
 }
@@ -151,7 +134,10 @@ Initialize_SQLTable()
 		if(query==INVALID_HANDLE)
 		{   
 			new String:createtable[3000];
-			Format(createtable,sizeof(createtable),"CREATE TABLE war3source (steamid varchar(64) UNIQUE , name varchar(64),   currentrace varchar(16),     gold int,    diamonds int,  total_level int,     total_xp int, levelbankV2 int,   last_seen int) %s",War3SQLType:W3GetVar(hDatabaseType)==SQLType_MySQL?"DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci":"" )
+			Format(createtable,sizeof(createtable),
+			"CREATE TABLE war3source (steamid varchar(64) UNIQUE , name varchar(64),   currentrace varchar(16),     gold int,    diamonds int,  total_level int,     total_xp int, levelbankV2 int,   last_seen int) %s",
+			War3SQLType:W3GetVar(hDatabaseType)==SQLType_MySQL?"DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci":"" )
+
 			if(!SQL_FastQueryLogOnError(hDB,createtable))
 			{
 				SetFailState("[War3Source] ERROR in the creation of the SQL table war3source.");
@@ -286,47 +272,43 @@ War3Source_SavePlayerData(client,race)
 //retrieve
 public OnClientPutInServer(client)
 {
-		//DP("PUTIN");
-	if(W3()){
-			//DP("PUTINW3");
-		W3SetPlayerProp(client,xpLoaded,false); //set race 0 may trigger unwanted behavior, block it first
-		W3SetPlayerProp(client,bPutInServer,true); //stateful entry
-		W3CreateEvent(InitPlayerVariables,client); 
-		W3SetPlayerProp(client,xpLoaded,false);
-	
+	//DP("PUTIN");
+	//DP("PUTINW3");
+	W3SetPlayerProp(client,xpLoaded,false); //set race 0 may trigger unwanted behavior, block it first
+	W3SetPlayerProp(client,bPutInServer,true); //stateful entry
+	W3CreateEvent(InitPlayerVariables,client);
+	W3SetPlayerProp(client,xpLoaded,false);
+
 //		W3CreateEvent(ClearPlayerVariables,client); 
-		
-		
-		if(IsFakeClient(client)){
-			W3SetPlayerProp(client,xpLoaded,true);
-		}
-		else
+
+
+	if(IsFakeClient(client)){
+		W3SetPlayerProp(client,xpLoaded,true);
+	}
+	else
+	{
+		if(W3SaveEnabled())
 		{
-			if(W3SaveEnabled())
-			{
-				War3_ChatMessage(client,"%T","Loading player data...",client);
-				War3Source_LoadPlayerData(client);
-			}
-			else{
-				DoForwardOnWar3PlayerAuthed(client);
-			}
-			if(!W3SaveEnabled() || hDB==INVALID_HANDLE)
-				W3SetPlayerProp(client,xpLoaded,true); // if db failed , or no save xp
+			War3_ChatMessage(client,"%T","Loading player data...",client);
+			War3Source_LoadPlayerData(client);
 		}
+		else{
+			DoForwardOnWar3PlayerAuthed(client);
+		}
+		if(!W3SaveEnabled() || hDB==INVALID_HANDLE)
+			W3SetPlayerProp(client,xpLoaded,true); // if db failed , or no save xp
 	}
 }
 public OnClientDisconnect(client)
 {
-	if(W3()){
-		if(W3GetPlayerProp(client,bPutInServer)){ //he must have joined (not just connected) server already
-			if(W3SaveEnabled() && W3IsPlayerXPLoaded(client)){
-				War3Source_SavePlayerData(client,War3_GetRace(client));
-			}
-	
-			W3CreateEvent(ClearPlayerVariables,client); 
-			W3SetPlayerProp(client,bPutInServer,false);
-			desiredRaceOnJoin[client]=0;
+	if(W3GetPlayerProp(client,bPutInServer)){ //he must have joined (not just connected) server already
+		if(W3SaveEnabled() && W3IsPlayerXPLoaded(client)){
+			War3Source_SavePlayerData(client,War3_GetRace(client));
 		}
+
+		W3CreateEvent(ClearPlayerVariables,client);
+		W3SetPlayerProp(client,bPutInServer,false);
+		desiredRaceOnJoin[client]=0;
 	}
 }
 
@@ -413,11 +395,15 @@ public T_CallbackSelectPDataMain(Handle:owner,Handle:hndl,const String:error[],a
 				PrintToConsole(client,"%T","[War3Source] War3 MAIN retrieval: gold {amount} Time {amount}",client,cred,GetGameTime());
 				PrintToConsole(client,"[War3Source] Diamonds %d",diamonds);
 				
-				new raceFound=0; // worst case senario set player to race 0
+				new raceFound=0; // worst case senario set player to race 0 <<-- changed to 1 so that they must have a race
 				if(GetConVarInt(hSetRaceOnJoinCvar)>0)
 				{
 					//Scan all the races
 					new RacesLoaded = War3_GetRacesLoaded();
+					if(RacesLoaded>0)
+					{
+						raceFound=1;  //Change default to 1 since races do exist
+					}
 					for(new x=1;x<=RacesLoaded;x++)
 					{
 						new String:short[16];
@@ -437,6 +423,16 @@ public T_CallbackSelectPDataMain(Handle:owner,Handle:hndl,const String:error[],a
 		}
 		else if(SQL_GetRowCount(hndl) == 0) //he doesnt exist
 		{
+			///////////////////////////////////////////
+			///////////////////////////////////////////
+			///////////////////////////////////////////
+			/////////IN THIS AREA IS///////////////////
+			/////////WHERE THE NEW PLAYER DATA/////////
+			/////////IS CREATED!///////////////////////
+			///////////////////////////////////////////
+			/////////CREATE A WAR3 EVENT///////////////
+			///////////////////////////////////////////
+
 			//Not in database so add
 			decl String:steamid[64];
 			decl String:name[64];
@@ -524,9 +520,10 @@ public T_CallbackSelectPDataRace(Handle:owner,Handle:hndl,const String:error[],a
 					raceloaded[raceid]=true;
 					new level=W3SQLPlayerInt(hndl,"level");
 					
-					if(level>W3GetRaceMaxLevel(raceid)){
-						level=W3GetRaceMaxLevel(raceid);
-					}
+					// REMOVED.. causes races of different levels not to save the highest level
+					//if(level>W3GetRaceMaxLevel(raceid)){
+						//level=W3GetRaceMaxLevel(raceid);
+					//}
 					
 					War3_SetLevel(client,raceid,level);
 					new pxp=W3SQLPlayerInt(hndl,"xp");
@@ -548,7 +545,7 @@ public T_CallbackSelectPDataRace(Handle:owner,Handle:hndl,const String:error[],a
 						
 						Format(printstr,sizeof(printstr),"%s skill%d=%d",printstr,skillid,skilllevel);
 					}
-					
+
 					usefulretrievals++;
 				}
 				retrievals++;
@@ -573,14 +570,19 @@ public T_CallbackSelectPDataRace(Handle:owner,Handle:hndl,const String:error[],a
 				decl String:steamid[64];
 				decl String:name[64];
 				if(GetClientAuthString(client,steamid,sizeof(steamid)) && GetClientName(client,name,sizeof(name)) ) {
-					ReplaceString(name,sizeof(name), "'","", true);
+					// don't even use name... why have it?
+
+					//ReplaceString(name,sizeof(name), "'","", true);//REMOVE IT //double escape because \\ turns into -> \  after the %s insert into sql statement
+					
+					//new String:szSafeName[(sizeof(name)*2)-1];
+					//SQL_EscapeString( hDB, name, szSafeName, sizeof(szSafeName));
 
 					new String:longquery[4000];
 					new String:short[16];
 					War3_GetRaceShortname(raceid,short,sizeof(short));
 					
 					new last_seen=GetTime();
-					Format(longquery,sizeof(longquery),"INSERT INTO war3source_racedata1 (steamid,raceshortname,level,xp,last_seen) VALUES ('%s','%s','%d','%d','%d')",steamid,short,War3_GetLevel(client,raceid),War3_GetXP(client,raceid),last_seen);
+					Format(longquery,sizeof(longquery),"INSERT INTO war3source_racedata1 (steamid,raceshortname,level,xp,last_seen) VALUES ('%s','%s','%d','%d','%d')",steamid,short,War3_GetLevelEx(client,raceid,true),War3_GetXP(client,raceid),last_seen);
 					
 					SQL_TQuery(hDB,T_CallbackInsertPDataRace,longquery,client);
 					inserts++;
@@ -678,8 +680,8 @@ War3_SavePlayerRace(client,race)
 		if(GetClientAuthString(client,steamid,sizeof(steamid)))
 		{
 		
-			
-			new level=War3_GetLevel(client,race);
+
+			new level=War3_GetLevelEx(client,race,true);
 			new xp=War3_GetXP(client,race);
 			//DP("%d,%d,",level,xp);
 			new String:raceshortname[16];
@@ -735,6 +737,7 @@ War3_SavePlayerMainData(client){
 			new String:szSafeName[(sizeof(name)*2)-1];
 			SQL_EscapeString( hDB, name, szSafeName, sizeof(szSafeName));
 
+				
 			new String:longquery[4000];
 			new total_level=W3GetTotalLevels(client);
 			new total_xp=0;
