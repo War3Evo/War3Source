@@ -186,7 +186,7 @@ InternalExceededMaxItemsMenuBuy(client)
 	decl String:itemname2[64];
 	W3GetItemName(WantsToBuy2[client],itemname2,sizeof(itemname2));
 	
-	SetMenuTitle(hMenu,"%T\n","[War3Source] You already have a max of {amount} items. Choose an item to replace with {itemname}. You will not get Diamonds back",GetTrans(),GetMaxShopitemsPerPlayer(),itemname);
+	SetMenuTitle(hMenu,"%T\n","[War3Source] You already have a max of {amount} items. Choose an item to replace with {itemname}. You will not get Diamonds back",GetTrans(),GetMaxShopitemsPerPlayer(),itemname2);
 	
 	decl String:itembuf2[4];
 	decl String:linestr2[96];
