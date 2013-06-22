@@ -70,7 +70,7 @@ public OnPluginStart()
 	//skillProp[0][0][0]=0; // not used anywhere
 	m_MinimumUltimateLevel=CreateConVar("war3_minimumultimatelevel","10");
 	//PrintToServer("W3E OnPluginStart Engine RaceClass");
-	RegAdminCmd("getjoblist",Cmdjoblist,ADMFLAG_KICK);
+	RegAdminCmd("getracelist",Cmdjoblist,ADMFLAG_KICK);
 }
 
 public Action:Cmdjoblist(client,args){
@@ -79,7 +79,7 @@ public Action:Cmdjoblist(client,args){
 	for(new x=1;x<=RacesLoaded;x++)
 	{
 		War3_GetRaceName(x,LongRaceName,64);
-		War3_ChatMessage(client,"JobList [Debug] Job: %s Job ID: %i",LongRaceName,x);
+		War3_ChatMessage(client,"RaceList [Debug] Race: %s Race ID: %i",LongRaceName,x);
 	}
 	return Plugin_Handled;
 }
@@ -156,7 +156,7 @@ public NWar3_IsRaceReloading(Handle:plugin,numParams){
 		// ReloadRaces_Shortname[x]==
 		if(ReloadRaces_Id[x]==true)
 			{
-				//PrintToServer("NWar3_IsRaceReloading shortname %s Job %i id",ReloadRaces_Shortname[x],x);
+				//PrintToServer("NWar3_IsRaceReloading shortname %s Race %i id",ReloadRaces_Shortname[x],x);
 				findtherace=true;
 				break;
 			}
@@ -250,7 +250,7 @@ public NWar3_RaceOnPluginStart(Handle:plugin,numParams){
 			// ReloadRaces_Shortname[x]==
 			if(StrEqual(shortname,ReloadRaces_Shortname[x],false))
 				{
-					//PrintToServer("Reloading shortname %s Job %i id",ReloadRaces_Shortname[x],x);
+					//PrintToServer("Reloading shortname %s Race %i id",ReloadRaces_Shortname[x],x);
 					findtherace=true;
 					break;
 				}
