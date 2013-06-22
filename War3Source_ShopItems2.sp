@@ -79,18 +79,14 @@ public Action:test(Handle:t,any:a){
 
 public OnWar3LoadRaceOrItemOrdered(num)
 {
-	if(num==10&&EXT()){
-		ItemID[POSTHASTE]=W3CreateShopItem2T("posthaste",10);	
-		if(ItemID[POSTHASTE]==0){
-			DP("ERR ITEM ID RETURNED IS ZERO");
-		}
-		ItemID[TRINKET]=W3CreateShopItem2T("trinket",15);
-		ItemID[LIFETUBE]=W3CreateShopItem2T("lifetube",40);
-		ItemID[SNAKE_BRACELET]=W3CreateShopItem2T("snakebracelet",10);
-		ItemID[FORTIFIED_BRACER]=W3CreateShopItem2T("fortifiedbracer",10);
-		
-		
+	ItemID[POSTHASTE]=War3_CreateShopItem2T("posthaste",10);	
+	if(ItemID[POSTHASTE]==0){
+		DP("ERR ITEM ID RETURNED IS ZERO");
 	}
+	ItemID[TRINKET]=War3_CreateShopItem2T("trinket",15);
+	ItemID[LIFETUBE]=War3_CreateShopItem2T("lifetube",40);
+	ItemID[SNAKE_BRACELET]=War3_CreateShopItem2T("snakebracelet",10);
+	ItemID[FORTIFIED_BRACER]=War3_CreateShopItem2T("fortifiedbracer",10);
 }
 public OnMapStart()
 {
