@@ -500,12 +500,22 @@ LoadRacesAndItems()
 		Call_StartForward(g_OnWar3PluginReadyHandle2);
 		Call_PushCell(i);
 		Call_PushCell(-1);
+		Call_Finish(res);
+	}
+		
+	//orderd loads 3   Reloadable Races
+	for(new i;i<=MAXRACES*10;i++)
+	{
+		//DoForward_OnWar3LoadRaceOrItemOrdered2(i,-1,"");
+		Call_StartForward(g_OnWar3PluginReadyHandle3);
+		Call_PushCell(i);
+		Call_PushCell(-1);
 		Call_PushString("");
 		Call_Finish(res);
 	}
 		
 	//unorderd loads
-	Call_StartForward(g_OnWar3PluginReadyHandle3);
+	Call_StartForward(g_OnWar3PluginReadyHandle4);
 	Call_Finish(res);
 	
 

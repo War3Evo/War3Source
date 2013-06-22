@@ -39,8 +39,8 @@ Author(s): Anthony Iacono
 
 
 new Handle:g_OnWar3PluginReadyHandle; //loadin default races in order
-new Handle:g_OnWar3PluginReadyHandle3; //other races backwards compatable
-//new Handle:g_OnWar3PluginReadyHandle4;
+new Handle:g_OnWar3PluginReadyHandle2; //other races backwards compatable
+new Handle:g_OnWar3PluginReadyHandle4;
 
 new Handle:g_OnWar3EventSpawnFH;
 new Handle:g_OnWar3EventDeathFH;
@@ -56,14 +56,13 @@ bool:War3Source_InitForwards()
 	
 	
 	g_OnWar3PluginReadyHandle=CreateGlobalForward("OnWar3LoadRaceOrItemOrdered",ET_Ignore,Param_Cell,Param_Cell);//ordered
-	// moved to forwards2.inc:
-	//g_OnWar3PluginReadyHandle2=CreateGlobalForward("OnWar3LoadRaceOrItemOrdered2",ET_Ignore,Param_Cell,Param_Cell,Param_Cell);//ordered
+	g_OnWar3PluginReadyHandle2=CreateGlobalForward("OnWar3LoadRaceOrItemOrdered2",ET_Ignore,Param_Cell,Param_Cell);//ordered
 	return true;
 }
 
 bool:War3Source_InitForwards3()
 {
-	g_OnWar3PluginReadyHandle3=CreateGlobalForward("OnWar3PluginReady",ET_Ignore); //unodered rest of the items or races. backwards compatable..
+	g_OnWar3PluginReadyHandle4=CreateGlobalForward("OnWar3PluginReady",ET_Ignore); //unodered rest of the items or races. backwards compatable..
 	//g_OnWar3PluginReadyHandle4=CreateGlobalForward("OnWar3PluginRaceId",ET_Ignore,Param_Cell); //Used to send plugin RACE ID before it calls plugin to load itself	
 
     
