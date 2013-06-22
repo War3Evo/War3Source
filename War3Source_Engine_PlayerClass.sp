@@ -102,6 +102,7 @@ public bool:InitNativesForwards()
 	
 	CreateNative("War3_SetLevel",NWar3_SetLevel); 
 	CreateNative("War3_GetLevel",NWar3_GetLevel); 
+	CreateNative("War3_GetLevelEx",NWar3_GetLevelEx); 
 	
 	CreateNative("War3_SetXP",NWar3_SetXP); 
 	CreateNative("War3_GetXP",NWar3_GetXP); 
@@ -238,26 +239,54 @@ public NWar3_SetLevel(Handle:plugin,numParams){
 public NWar3_GetLevel(Handle:plugin,numParams){
 	new client = GetNativeCell(1);
 	new race = GetNativeCell(2);
-	if (client > 0 && client <= MaxClients && race >= 0 && race < MAXRACES)
+	if (client > 0 && client <= MaxClients && race > 0 && race < MAXRACES)
 	{
 		//DP("%d",p_level[client][race]);
-		return p_level[client][race];
+		new level=p_level[client][race];
+		if(level>W3GetRaceMaxLevel(race))
+			level=W3GetRaceMaxLevel(race);
+		return level;
 	}
-	else
-		return 0;
+	//else
+	return 0;
+}
+
+public NWar3_GetLevelEx(Handle:plugin,numParams){
+	new client = GetNativeCell(1);
+	new race = GetNativeCell(2);
+	new bool:truelevel = GetNativeCell(3); 
+	if (client > 0 && client <= MaxClients && race > 0 && race < MAXRACES)
+	{
+		//DP("%d",p_level[client][race]);
+		if(truelevel==true)
+		{
+			return p_level[client][race];
+		}
+		else
+		{
+			new level=p_level[client][race];
+			if(level>W3GetRaceMaxLevel(race))
+			{
+				level=W3GetRaceMaxLevel(race);
+				return level;
+			}
+		}
+	}
+	//else
+	return 0;
 }
 
 
 public NWar3_SetXP(Handle:plugin,numParams){
 	new client = GetNativeCell(1);
 	new race = GetNativeCell(2);
-	if (client > 0 && client <= MaxClients && race >= 0 && race < MAXRACES)
+	if (client > 0 && client <= MaxClients && race > 0 && race < MAXRACES)
 		p_xp[client][race]=GetNativeCell(3);
 }
 public NWar3_GetXP(Handle:plugin,numParams){
 	new client = GetNativeCell(1);
 	new race = GetNativeCell(2);
-	if (client > 0 && client <= MaxClients && race >= 0 && race < MAXRACES)
+	if (client > 0 && client <= MaxClients && race > 0 && race < MAXRACES)
 		return p_xp[client][race];
 	else
 		return 0;
