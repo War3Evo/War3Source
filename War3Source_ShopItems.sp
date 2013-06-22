@@ -3,12 +3,12 @@
  * Description: The shop items that come with War3Source.
  * Author(s): Anthony Iacono
  */
- 
+
 #pragma semicolon 1
 
 #include <sourcemod>
 #include "W3SIncs/War3Source_Interface"
-#include <sdktools>
+#include "W3SIncs/sdkhooks"
 
 #include <cstrike>
 
