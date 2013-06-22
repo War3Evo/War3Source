@@ -93,8 +93,8 @@ public OnMapStart() { //some precaches
 	}
 
 
-  War3_PrecacheSound(skill1snd);
-  War3_PrecacheSound(ultsnd);
+	War3_PrecacheSound(skill1snd);
+	War3_PrecacheSound(ultsnd);
 }
 
 public OnWar3EventPostHurt(victim,attacker,amount){
