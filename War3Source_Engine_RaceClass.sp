@@ -1,8 +1,14 @@
-
 #pragma dynamic 10000
 #include <sourcemod>
 #include "W3SIncs/War3Source_Interface"
+#include "W3SIncs/forwards2"
 
+public Plugin:myinfo = 
+{
+    name = "War3Source - Engine - Race Class",
+    author = "War3Source Team",
+    description = "Information about races"
+};
 
 new totalRacesLoaded=0;  ///USE raceid=1;raceid<=GetRacesLoaded();raceid++ for looping
 ///race instance variables
@@ -22,7 +28,8 @@ new String:raceSkillDescReplace[MAXRACES][MAXSKILLCOUNT][5][64]; ///MAX 5 params
 new bool:skillTranslated[MAXRACES][MAXSKILLCOUNT];
 
 new String:raceString[MAXRACES][RaceString][512];
-new String:raceSkillString[MAXRACES][MAXSKILLCOUNT][SkillString][512];
+// not sure why this exists:
+//new String:raceSkillString[MAXRACES][MAXSKILLCOUNT][SkillString][512];
 
 enum SkillRedirect
 {
@@ -33,7 +40,7 @@ new SkillRedirectedToSkill[MAXRACES][MAXSKILLCOUNT];
 
 new bool:skillIsUltimate[MAXRACES][MAXSKILLCOUNT];
 new skillMaxLevel[MAXRACES][MAXSKILLCOUNT];
-new skillProp[MAXRACES][MAXSKILLCOUNT][W3SkillProp];
+//new skillProp[MAXRACES][MAXSKILLCOUNT][W3SkillProp];        // not used anywhere
 
 new MinLevelCvar[MAXRACES];
 new AccessFlagCvar[MAXRACES];
@@ -49,37 +56,50 @@ new String:creatingraceshortname[16];
 
 new raceCell[MAXRACES][ENUM_RaceObject]
 
+new bool:ReloadRaces_Id[MAXRACES];
+new ReloadRaces_Client_Race[MAXPLAYERSCUSTOM];
+new String:ReloadRaces_Shortname[MAXRACES][16];
+new String:ReloadRaces_longname[MAXRACES][32];
 
 //END race instance variables
-
-
-public Plugin:myinfo= 
-{
-	name="W3S Engine Race Class",
-	author="Ownz (DarkEnergy)",
-	description="War3Source Core Plugins",
-	version="1.0",
-	url="http://war3source.com/"
-};
 
 
 public OnPluginStart()
 {
 //silence error
-	skillProp[0][0][0]=0;
-	m_MinimumUltimateLevel=CreateConVar("war3_minimumultimatelevel","6");
-	PrintToServer("SH %d",SH());
-	PrintToServer("W3 %d",W3());
+	//skillProp[0][0][0]=0; // not used anywhere
+	m_MinimumUltimateLevel=CreateConVar("war3_minimumultimatelevel","10");
+	//PrintToServer("W3E OnPluginStart Engine RaceClass");
+	RegAdminCmd("getjoblist",Cmdjoblist,ADMFLAG_KICK);
+}
+
+public Action:Cmdjoblist(client,args){
+	new RacesLoaded = GetRacesLoaded();
+	new String:LongRaceName[64];
+	for(new x=1;x<=RacesLoaded;x++)
+	{
+		War3_GetRaceName(x,LongRaceName,64);
+		War3_ChatMessage(client,"JobList [Debug] Job: %s Job ID: %i",LongRaceName,x);
+	}
+	return Plugin_Handled;
 }
 
 
 public bool:InitNativesForwards()
 {
+	War3Source_InitForwards2();
+
+	// Reloading Races does not seem to work for translated races.
+	CreateNative("War3_RaceOnPluginStart",NWar3_RaceOnPluginStart);
+	CreateNative("War3_RaceOnPluginEnd",NWar3_RaceOnPluginEnd);
+	CreateNative("War3_IsRaceReloading",NWar3_IsRaceReloading);
 
 	CreateNative("War3_CreateNewRace",NWar3_CreateNewRace);
 	CreateNative("War3_AddRaceSkill",NWar3_AddRaceSkill);
 	
 	CreateNative("War3_CreateNewRaceT",NWar3_CreateNewRaceT);
+	
+	// NO LONGER USED:  PROBABLY SHOULD REMOVE OR COMMENT OUT
 	CreateNative("War3_AddRaceSkillT",NWar3_AddRaceSkillT);
 	
 	CreateNative("War3_CreateGenericSkill",NWar3_CreateGenericSkill);
@@ -123,6 +143,7 @@ public bool:InitNativesForwards()
 	
 	CreateNative("W3GetRaceCell",NW3GetRaceCell);
 	CreateNative("W3SetRaceCell",NW3SetRaceCell);
+
 	return true;
 }
 
@@ -133,10 +154,11 @@ public NWar3_CreateNewRace(Handle:plugin,numParams){
 	decl String:name[64],String:shortname[16];
 	GetNativeString(1,name,sizeof(name));
 	GetNativeString(2,shortname,sizeof(shortname));
+	new ReloadRaceId_info=GetNativeCell(3);
 	
 	//W3Log("add race %s %s",name,shortname);
 	
-	return CreateNewRace(name,shortname);
+	return CreateNewRace(name,shortname,ReloadRaceId_info);
 
 }
 
@@ -168,13 +190,15 @@ public NWar3_CreateNewRaceT(Handle:plugin,numParams){
 	
 	decl String:name[64],String:shortname[32];
 	GetNativeString(1,shortname,sizeof(shortname));
-	new newraceid=CreateNewRace(name,shortname);
-	if(newraceid)
+	new ReloadRaceId_info=GetNativeCell(2);
+	new newraceid=CreateNewRace(name,shortname,ReloadRaceId_info);
+	if(newraceid>0)
 	{
 		raceTranslated[newraceid]=true;
 		new String:buf[64];
 		Format(buf,sizeof(buf),"w3s.race.%s.phrases",shortname);
 		LoadTranslations(buf);
+		PrintToServer(buf);
 	}
 	return newraceid;
 
@@ -192,7 +216,7 @@ public NWar3_AddRaceSkillT(Handle:plugin,numParams){
 		new bool:isult=GetNativeCell(3);
 		new tmaxskilllevel=GetNativeCell(4);
 		
-	
+
 		//W3Log("add skill T %d %s",raceid,skillname);
 			
 		new newskillnum=AddRaceSkill(raceid,skillname,skilldesc,isult,tmaxskilllevel);
@@ -284,6 +308,7 @@ public NW3GetRaceString(Handle:plugin,numParams)
 	Format(longbuf,sizeof(longbuf),raceString[race][RaceString:racestringid]);
 	SetNativeString(3,longbuf,GetNativeCell(4));
 }
+/*
 public NW3GetRaceSkillString(Handle:plugin,numParams)
 {
 	new race=GetNativeCell(1);
@@ -295,7 +320,7 @@ public NW3GetRaceSkillString(Handle:plugin,numParams)
 	Format(longbuf,sizeof(longbuf),raceSkillString[race][skill][raceskillstringid]);
 	SetNativeString(4,longbuf,GetNativeCell(5));
 }
-
+*/	
 public NW3GetRaceSkillName(Handle:plugin,numParams)
 {
 	new race=GetNativeCell(1);
@@ -313,7 +338,8 @@ public NW3GetRaceSkillName(Handle:plugin,numParams)
 	SetNativeString(3,buf,maxlen);
 }
 public NW3GetRaceSkillDesc(Handle:plugin,numParams)
-{	new race=GetNativeCell(1);
+{
+	new race=GetNativeCell(1);
 	new skill=GetNativeCell(2);
 	new maxlen=GetNativeCell(4);
 	
@@ -358,7 +384,7 @@ public NW3GetRaceList(Handle:plugin,numParams){
 	new listcount=0;
 	new RacesLoaded = War3_GetRacesLoaded();
 	new Handle:hdynamicarray=CreateArray(1); //1 cell
-	
+
 	for(new raceid=1;raceid<=RacesLoaded;raceid++){
 		
 		if(!W3RaceHasFlag(raceid,"hidden")){
@@ -559,7 +585,7 @@ public NWar3_UseGenericSkill(Handle:plugin,numParams){
 			}
 		}
 	}
-	W3LogError("NO GENREIC SKILL FOUND");
+	W3LogError("NO GENERIC SKILL FOUND");
 	return 0;
 }
 public NW3_GenericSkillLevel(Handle:plugin,numParams){
@@ -637,18 +663,16 @@ public NW3_GenericSkillLevel(Handle:plugin,numParams){
 
 
 
-CreateNewRace(String:tracename[]  ,  String:traceshortname[]){
+CreateNewRace(String:tracename[]  ,  String:traceshortname[], TheReloadRaceId){
 	
-	
-	
-	if(RaceExistsByShortname(traceshortname)){
+	if(RaceExistsByShortname(traceshortname)&&TheReloadRaceId<=0){
 		new oldraceid=GetRaceIDByShortname(traceshortname);
 		PrintToServer("Race already exists: %s, returning old raceid %d",traceshortname,oldraceid);
 		ignoreRaceEnd=true;
 		return oldraceid;
 	}
 	
-	if(totalRacesLoaded+1==MAXRACES){ //make sure we didnt reach our race capacity limit
+	if(totalRacesLoaded+1==MAXRACES&&TheReloadRaceId<=0){ //make sure we didnt reach our race capacity limit
 		LogError("MAX RACES REACHED, CANNOT REGISTER %s %s",tracename,traceshortname);
 		return 0;
 	}
@@ -672,17 +696,32 @@ CreateNewRace(String:tracename[]  ,  String:traceshortname[]){
 		Format(raceName[totalRacesLoaded],31,"No Race");
 	}
 	
+
+	new traceid;
+	if(TheReloadRaceId>0)
+	{
+		traceid=TheReloadRaceId;
+		strcopy(raceName[traceid], 31, tracename);
+		strcopy(raceShortname[traceid], 16, traceshortname);
+
+		//make all skills zero so we can easily debug
+		for(new i=0;i<MAXSKILLCOUNT;i++){
+			Format(raceSkillName[traceid][i],31,"NO SKILL DEFINED %d",i);
+			Format(raceSkillDescription[traceid][i],2000,"NO SKILL DESCRIPTION DEFINED %d",i);
+		}
+	}
+	else
+	{
+		totalRacesLoaded++;
+		traceid=totalRacesLoaded;
+		strcopy(raceName[traceid], 31, tracename);
+		strcopy(raceShortname[traceid], 16, traceshortname);
 	
-	totalRacesLoaded++;
-	new traceid=totalRacesLoaded;
-	
-	strcopy(raceName[traceid], 31, tracename);
-	strcopy(raceShortname[traceid], 16, traceshortname);
-	
-	//make all skills zero so we can easily debug
-	for(new i=0;i<MAXSKILLCOUNT;i++){
-		Format(raceSkillName[traceid][i],31,"NO SKILL DEFINED %d",i);
-		Format(raceSkillDescription[traceid][i],2000,"NO SKILL DESCRIPTION DEFINED %d",i);
+		//make all skills zero so we can easily debug
+		for(new i=0;i<MAXSKILLCOUNT;i++){
+			Format(raceSkillName[traceid][i],31,"NO SKILL DEFINED %d",i);
+			Format(raceSkillDescription[traceid][i],2000,"NO SKILL DESCRIPTION DEFINED %d",i);
+		}
 	}
 	
 	return traceid; //this will be the new race's id / index
@@ -805,7 +844,7 @@ AddRaceSkill(raceid,String:skillname[],String:skilldescription[],bool:isUltimate
 		for(new i=1;i<=SkillCount;i++){
 			//GetRaceSkillName(raceid,i,existingskillname,sizeof(existingskillname));
 			if(StrEqual(skillname,raceSkillName[raceid][i],false)){ ////need raw skill name, because of translations
-				//PrintToServer("Skill exists %s, returning old skillid %d",skillname,i);
+				PrintToServer("Skill exists %s, returning old skillid %d",skillname,i);
 				
 				return i;
 			}
@@ -824,6 +863,23 @@ AddRaceSkill(raceid,String:skillname[],String:skilldescription[],bool:isUltimate
 		raceSkillCount[raceid]++;
 		
 		strcopy(raceSkillName[raceid][raceSkillCount[raceid]], 32, skillname);
+		//PrintToServer("AddRaceSkill: Skill %s skillid %d",skillname,raceSkillCount[raceid]);
+		
+		if(ReloadRaces_Id[raceid]==true)
+		{
+			new String:LongRaceName[64];
+			War3_GetRaceName(raceid,LongRaceName,64);
+			PrintToServer("Reloading %s: AddRaceSkill: Skill %s skillid %d",LongRaceName,skillname,raceSkillCount[raceid]);
+
+			for(new i=0;i<MAXPLAYERSCUSTOM;i++){
+				if(War3_GetRace(i)==raceid)
+					{
+						PrintToConsole(i,"Reloading %s: AddRaceSkill: Skill %s skillid %d",LongRaceName,skillname,raceSkillCount[raceid]);
+					}
+			}
+		}
+		
+		
 		strcopy(raceSkillDescription[raceid][raceSkillCount[raceid]], 2000, skilldescription);
 		skillIsUltimate[raceid][raceSkillCount[raceid]]=isUltimate;
 		
@@ -844,17 +900,15 @@ CreateRaceEnd(raceid){
 		racecreationended=true;
 		Format(creatingraceshortname,sizeof(creatingraceshortname),"");
 		///now we put shit into the database and create cvars
-		if(!ignoreRaceEnd&&raceid>0)
+		if(!ignoreRaceEnd&&raceid>0 && ReloadRaces_Id[raceid]==false)  // Dont let reload races over write these variables.
 		{
-			new Handle:hDB=Handle:W3GetVar(hDatabase);
-			
 			new String:shortname[16];
 			GetRaceShortname(raceid,shortname,sizeof(shortname));
 			
 			new String:cvarstr[64];
 			Format(cvarstr,sizeof(cvarstr),"%s_minlevel",shortname);
 			MinLevelCvar[raceid]=W3CreateCvar(cvarstr,"0","Minimum level for race");
-	
+			
 			Format(cvarstr,sizeof(cvarstr),"%s_accessflag",shortname);
 			AccessFlagCvar[raceid]=W3CreateCvar(cvarstr,"0","Admin access flag required for race");
 			
@@ -881,79 +935,17 @@ CreateRaceEnd(raceid){
 			
 			Format(cvarstr,sizeof(cvarstr),"%s_category",shortname);
 			W3SetRaceCell(raceid,RaceCategorieCvar,W3CreateCvar(cvarstr,"default","Determines in which Category the race should be displayed(if cats are active)"));
-			
-			// create war3sourceraces structure, shouldn't be harmful if already exists
-			if(hDB)
-			{
-				PrintToServer("---Starting Threaded race operations: %s----------",shortname);
-				//PrintToServer("Creating race into war3sourceraces if not exists %s",shortname);
-				
-				
-				new String:longquery[4001];
-				// populate war3sourceraces
-				
-				Format(longquery,sizeof(longquery),"INSERT %s IGNORE INTO %s (shortname) VALUES ('%s')",
-					W3GetVar(hDatabaseType)==SQLType_SQLite?"OR":"",
-					W3()?"war3sourceraces":(SH()?"shheroes":"invalidgametype"),
-					shortname
-					);
-				
-				SQL_TQuery(hDB,T_CallbackInsertRace1,longquery,raceid,DBPrio_High);
-				
-				
-				
-			}
 		}
+		if(ReloadRaces_Id[raceid]==true)
+		{
+			Race_Finished_Reload(raceid);
+		}
+		ReloadRaces_Id[raceid]=false;
+		strcopy(ReloadRaces_longname[raceid], 32, "");
+		strcopy(ReloadRaces_Shortname[raceid], 16, "");
 		ignoreRaceEnd=false;
 	}
 }
-
-public T_CallbackInsertRace1(Handle:owner,Handle:hndl,const String:error[],any:raceid)
-{
-	SQLCheckForErrors(hndl,error,"T_CallbackInsertRace1");
-	new Handle:hDB=Handle:W3GetVar(hDatabase);
-	
-	
-	new String:retstr[2000];
-	new String:escapedstr[2000];
-	new String:longquery[4000];
-	Format(longquery,sizeof(longquery),"UPDATE %s SET ",W3()?"war3sourceraces":(SH()?"shheroes":"invalidgametype"));
-	
-	GetRaceName(raceid,retstr,sizeof(retstr));
-	SQL_EscapeString(hDB,retstr,escapedstr,sizeof(escapedstr));
-	Format(longquery,sizeof(longquery),"%s name='%s'",longquery,escapedstr);
-	
-	
-	new SkillCount = GetRaceSkillCount(raceid);
-	for(new i=1;i<=SkillCount;i++){
-		GetRaceSkillName(raceid,i,retstr,sizeof(retstr));
-		SQL_EscapeString(hDB,retstr,escapedstr,sizeof(escapedstr));
-		Format(longquery,sizeof(longquery),"%s, skill%d='%s %s'",longquery,i,IsSkillUltimate(raceid,i)?"Ultimate":"",escapedstr);
-		
-		GetRaceSkillDesc(raceid,i,retstr,sizeof(retstr));
-		SQL_EscapeString(hDB,retstr,escapedstr,sizeof(escapedstr));
-		Format(longquery,sizeof(longquery),"%s, skilldesc%d='%s'",longquery,i,escapedstr);
-	}
-	
-	new String:shortname[16];
-	GetRaceShortname(raceid,shortname,sizeof(shortname));
-	
-	Format(longquery,sizeof(longquery),"%s WHERE shortname = '%s'",longquery,shortname);
-	SQL_TQuery(hDB,  T_CallbackInsertRace2,longquery,raceid,DBPrio_High);//
-}
-public T_CallbackInsertRace2(Handle:owner,Handle:hndl,const String:error[],any:raceid)
-{
-	SQLCheckForErrors(hndl,error,"T_CallbackInsertRace2");
-	
-	//new String:racename[32];
-//	GetRaceName(raceid,racename,sizeof(racename));
-	//PrintToServer("[War3Source] SQL operations done for war3sourceraces: race %s",racename);
-}
-
-
-
-
-
 
 
 

@@ -1,5 +1,5 @@
 
-
+#pragma dynamic 10000
 #include <sourcemod>
 #include "W3SIncs/War3Source_Interface"
 
@@ -20,7 +20,6 @@ public Plugin:myinfo=
 public OnPluginStart()
 {
 	RegConsoleCmd("war3",cmdWar3,"War3 / SH internal variables and commands");
-	RegConsoleCmd("sh",cmdWar3,"War3 / SH internal variables and commands");
 }
 
 public bool:InitNativesForwards()
@@ -48,7 +47,12 @@ public NW3CreateCvar(Handle:plugin,numParams){
 	GetNativeString(1,cvar,sizeof(cvar));
 	GetNativeString(2,value,sizeof(value));
 	GetNativeString(3,desc,sizeof(desc));
-	if(!SetTrieString(Cvartrie,cvar,value,false)){
+	
+	new bool:ReplaceCvars=War3_IsRaceReloading();
+	
+	//PrintToServer("W3 Cvar %s %s ReplaceCvars: %s",cvar,desc,ReplaceCvars?"true":"false");
+		
+	if(!SetTrieString(Cvartrie,cvar,value,ReplaceCvars)){
 		ThrowError("W3 Cvar %s %s already created, or creation failed",cvar,desc);
 		
 	}
