@@ -100,8 +100,7 @@ public bool:InitNativesForwards()
 
 	CreateNative("W3ChanceModifier",Native_W3ChanceModifier);
 
-	if(!GameTF())
-		CreateNative("W3IsOwnerSentry",Native_W3IsOwnerSentry);
+	CreateNative("W3IsOwnerSentry",Native_W3IsOwnerSentry);
 
 
 	FHOnW3TakeDmgAllPre=CreateGlobalForward("OnW3TakeDmgAllPre",ET_Hook,Param_Cell,Param_Cell,Param_Cell);
