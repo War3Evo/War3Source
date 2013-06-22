@@ -51,7 +51,7 @@ public OnPluginEnd()
 }
 
 // Must look almost like this to be reloadable:
-public OnWar3LoadRaceOrItemOrdered3(num,reloadrace_id,String:shortname[])
+public OnWar3LoadRaceOrItemOrdered4(num,reloadrace_id,String:shortname[])
 {
 	if(num==83||(reloadrace_id>0&&StrEqual("lightbender",shortname,false)))
 	{

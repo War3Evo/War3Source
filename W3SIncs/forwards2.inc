@@ -38,13 +38,13 @@ Author(s): Anthony Iacono
 /////FORWARD HANDLES (FH)
 
 
-new Handle:g_OnWar3PluginReadyHandle3; //other races
+new Handle:g_OnWar3PluginReadyHandle4; //other races
 
 ///END forwards
 
 
 bool:War3Source_InitForwards2()
 {
-	g_OnWar3PluginReadyHandle3=CreateGlobalForward("OnWar3LoadRaceOrItemOrdered3",ET_Ignore,Param_Cell,Param_Cell,Param_String);//ordered
+	g_OnWar3PluginReadyHandle4=CreateGlobalForward("OnWar3LoadRaceOrItemOrdered4",ET_Ignore,Param_Cell,Param_Cell,Param_String);//ordered
 	return true;
 }
