@@ -70,10 +70,10 @@ public OnPluginStart()
 	//skillProp[0][0][0]=0; // not used anywhere
 	m_MinimumUltimateLevel=CreateConVar("war3_minimumultimatelevel","10");
 	//PrintToServer("W3E OnPluginStart Engine RaceClass");
-	RegAdminCmd("getracelist",Cmdjoblist,ADMFLAG_KICK);
+	RegAdminCmd("getracelist",Cmdracelist,ADMFLAG_KICK);
 }
 
-public Action:Cmdjoblist(client,args){
+public Action:Cmdracelist(client,args){
 	new RacesLoaded = GetRacesLoaded();
 	new String:LongRaceName[64];
 	for(new x=1;x<=RacesLoaded;x++)
