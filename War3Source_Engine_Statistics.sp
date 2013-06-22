@@ -44,8 +44,8 @@ public Plugin:myinfo=
 
 public OnPluginStart()
 {	
-    hCollectingStats = CreateConVar("war3_enable_stat_collection", "1", "Controls if K/D and W/L stats should be collected", _, true, 0.0, true, 1.0);
-    HookConVarChange(hCollectingStats, StatCollectionCallback);
+	hCollectingStats = CreateConVar("war3_enable_stat_collection", "1", "Controls if K/D and W/L stats should be collected", _, true, 0.0, true, 1.0);
+	HookConVarChange(hCollectingStats, StatCollectionCallback);
 
 	collectwlstats=true;
 	collectkdstats=true;
