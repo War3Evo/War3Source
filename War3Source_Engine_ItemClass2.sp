@@ -97,9 +97,9 @@ public NWar3_CreateShopItem2T(Handle:plugin,numParams)
 	GetNativeString(1,shortname,sizeof(shortname));
 	new cost=GetNativeCell(2);
 	
-	Format(name,sizeof(name),"%s_temName",shortname);
+	Format(name,sizeof(name),"%s_ItemName",shortname);
 
-	Format(desc,sizeof(desc),"%s_temDesc",shortname);
+	Format(desc,sizeof(desc),"%s_ItemDesc",shortname);
 
 	new itemid=CreateNewItem2(name,shortname,desc,cost);
 	item2Translated[itemid]=true;
