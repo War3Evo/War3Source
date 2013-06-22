@@ -148,6 +148,164 @@ public bool:InitNativesForwards()
 }
 
 
+public NWar3_IsRaceReloading(Handle:plugin,numParams){
+	new RacesLoaded = GetRacesLoaded();
+	new bool:findtherace=false;
+	for(new x=1;x<=RacesLoaded;x++)
+	{
+		// ReloadRaces_Shortname[x]==
+		if(ReloadRaces_Id[x]==true)
+			{
+				//PrintToServer("NWar3_IsRaceReloading shortname %s Job %i id",ReloadRaces_Shortname[x],x);
+				findtherace=true;
+				break;
+			}
+	}
+	
+	return findtherace;
+}
+
+public NWar3_RaceOnPluginEnd(Handle:plugin,numParams){
+	
+	new String:shortname[16];
+	GetNativeString(1,shortname,sizeof(shortname));
+	if(StrEqual(shortname,"",false))
+		return;
+		
+	new RaceOnPluginEndID=GetRaceIDByShortname(shortname);
+
+	//PrintToServer("STARTED:NWar3_RaceOnPluginEnd raceid %i racename %s",RaceOnPluginEndID,shortname);
+	
+	if(RaceOnPluginEndID>0)
+	{
+		new String:LongRaceName[64];
+		War3_GetRaceName(RaceOnPluginEndID,LongRaceName,64);
+		
+		for(new i=0;i<MAXPLAYERSCUSTOM;i++){
+			if(War3_GetRace(i)==RaceOnPluginEndID)
+				{
+					ReloadRaces_Client_Race[i]=RaceOnPluginEndID;
+					PrintCenterText(i,"%s is being reloaded!",LongRaceName);
+					W3Hint(i,HINT_NORMAL,5.0,"%s is being reloaded!",LongRaceName);
+				}
+		}
+	
+		
+		ReloadRaces_Id[RaceOnPluginEndID]=true;
+		
+		strcopy(ReloadRaces_longname[RaceOnPluginEndID], 32, raceName[RaceOnPluginEndID]);
+		strcopy(ReloadRaces_Shortname[RaceOnPluginEndID], 16, raceShortname[RaceOnPluginEndID]);
+
+		strcopy(raceName[RaceOnPluginEndID], 32, "");
+		strcopy(raceShortname[RaceOnPluginEndID], 16, "");
+		// erase races skill info here
+		for(new i=0;i<MAXSKILLCOUNT;i++){
+			//PrintToServer("STARTED:NWar3_RaceOnPluginEnd i= %i",i);
+			strcopy(raceSkillName[RaceOnPluginEndID][i], 32, "");
+			strcopy(raceSkillDescription[RaceOnPluginEndID][i], 512, "");
+			skillIsUltimate[RaceOnPluginEndID][i]=false;
+			skillMaxLevel[RaceOnPluginEndID][i]=0;
+			raceSkillDescReplaceNum[RaceOnPluginEndID][i]=0;
+			skillTranslated[RaceOnPluginEndID][i]=false;
+			//raceSkillString[RaceOnPluginEndID][i][SkillString][512]; //not used
+			SkillRedirected[RaceOnPluginEndID][i]=false;
+			SkillRedirectedToSkill[RaceOnPluginEndID][i]=0;
+			skillIsUltimate[RaceOnPluginEndID][i]=false;
+			//skillProp[RaceOnPluginEndID][i][W3SkillProp]; //not used
+
+			// may ened to increase 4 to 5??
+			for(new arg=0;arg<4;arg++){
+				strcopy(raceSkillDescReplace[RaceOnPluginEndID][i][arg], 64, "");
+			}
+		}
+		
+		War3_RemoveDependency(RaceOnPluginEndID,raceSkillCount[RaceOnPluginEndID]);
+		raceSkillCount[RaceOnPluginEndID]=0;
+		
+		//W3Log("add race %s %s",name,shortname);
+		//PrintToServer("ENDED:NWar3_RaceOnPluginEnd raceid %i racename %s",RaceOnPluginEndID,shortname);
+
+		for(new i=0;i<MAXPLAYERSCUSTOM;i++){
+			if(ReloadRaces_Client_Race[i]==RaceOnPluginEndID)
+				{
+					War3_SetRace(i,0);
+					PrintToServer("[Race Loading] Client %i War3_SetRace to 0",i);
+				}
+		}
+	}
+}
+
+// TO: try to get reloading races to work with translated races.
+public NWar3_RaceOnPluginStart(Handle:plugin,numParams){
+
+	new String:shortname[16];
+	GetNativeString(1,shortname,sizeof(shortname));
+	if(!StrEqual(shortname,"",false))
+	{
+		new RacesLoaded = GetRacesLoaded();
+		new x
+		new bool:findtherace=false;
+		for(x=1;x<=RacesLoaded;x++)
+		{
+			// ReloadRaces_Shortname[x]==
+			if(StrEqual(shortname,ReloadRaces_Shortname[x],false))
+				{
+					//PrintToServer("Reloading shortname %s Job %i id",ReloadRaces_Shortname[x],x);
+					findtherace=true;
+					break;
+				}
+		}
+		// x = raceid
+		new res;
+		
+		if(!findtherace)
+			return false;
+			
+		//racecreationended=true;
+		//ignoreRaceEnd=false;
+		
+		// Important (erase skill count):
+		raceSkillCount[x]=0;
+		
+		for(new i=0;i<MAXSKILLCOUNT;i++){
+			//PrintToServer("STARTED:NWar3_RaceOnPluginStart i= %i",i);
+			raceSkillDescReplaceNum[x][i]=0;
+		}
+		
+		Call_StartForward(g_OnWar3PluginReadyHandle2);
+		Call_PushCell(-1);
+		Call_PushCell(x);
+		Call_PushString(shortname);
+		Call_Finish(res);
+		
+		//PrintToServer("NWar3_RaceOnPluginStart raceid %i racename %s",x,shortname);
+		
+	}
+	//W3Log("add race %s %s",name,shortname);
+	
+	return true;
+}
+
+Race_Finished_Reload(raceid)
+{
+	new String:LongRaceName[64];
+	War3_GetRaceName(raceid,LongRaceName,64);
+	
+	PrintToChatAll("%s has been updated!",LongRaceName);	
+	
+	for(new i=0;i<MAXPLAYERSCUSTOM;i++){
+		if(ReloadRaces_Client_Race[i]==raceid)
+			{
+				PrintCenterText(i,"%s has been updated.",LongRaceName);
+				W3Hint(i,HINT_NORMAL,5.0,"%s has been updated.",LongRaceName);
+				War3_SetRace(i,raceid)
+				ReloadRaces_Client_Race[i]=0;
+				PrintToServer("[Race Reloaded] Client %i War3_SetRace to %i",i,raceid);
+				War3_ChatMessage(i,"[Race Reloaded] Client %i War3_SetRace to %i",i,raceid);
+			}
+	}
+}
+
 public NWar3_CreateNewRace(Handle:plugin,numParams){
 	
 	

@@ -53,56 +53,51 @@ new Handle:AssistGoldCvar;
 
 public OnPluginStart()
 {
+	BotIgnoreXPCvar=CreateConVar("war3_ignore_bots_xp","0","Set to 1 to not award XP for killing bots");
+	HeadshotXPCvar=CreateConVar("war3_percent_headshotxp","20","Percent of kill XP awarded additionally for headshots");
+	MeleeXPCvar=CreateConVar("war3_percent_meleexp","120","Percent of kill XP awarded additionally for melee/knife kills");
+	AssistKillXPCvar=CreateConVar("war3_percent_assistkillxp","75","Percent of kill XP awarded for an assist kill.");
 	
-	if(W3()){
-		BotIgnoreXPCvar=CreateConVar("war3_ignore_bots_xp","0","Set to 1 to not award XP for killing bots");
-		HeadshotXPCvar=CreateConVar("war3_percent_headshotxp","20","Percent of kill XP awarded additionally for headshots");
-		MeleeXPCvar=CreateConVar("war3_percent_meleexp","120","Percent of kill XP awarded additionally for melee/knife kills");
-		AssistKillXPCvar=CreateConVar("war3_percent_assistkillxp","75","Percent of kill XP awarded for an assist kill.");
+	RoundWinXPCvar=CreateConVar("war3_percent_roundwinxp","100","Percent of kill XP awarded for being on the winning team");
 	
-		RoundWinXPCvar=CreateConVar("war3_percent_roundwinxp","100","Percent of kill XP awarded for being on the winning team");
-	
-		hLevelDifferenceBounus=CreateConVar("war3_xp_level_difference_bonus","0","Bounus Xp awarded per level if victim has a higher level");
-		minplayersXP=CreateConVar("war3_min_players_xp_gain","2","minimum amount of players needed on teams for people to gain xp");
-		MaxGoldCvar=CreateConVar("war3_maxgold","1000");
+	hLevelDifferenceBounus=CreateConVar("war3_xp_level_difference_bonus","0","Bounus Xp awarded per level if victim has a higher level");
+	minplayersXP=CreateConVar("war3_min_players_xp_gain","2","minimum amount of players needed on teams for people to gain xp");
+	MaxGoldCvar=CreateConVar("war3_maxgold","1000");
 		
-		KillGoldCvar=CreateConVar("war3_killgold","2");
-		AssistGoldCvar=CreateConVar("war3_assistgold","1");
+	KillGoldCvar=CreateConVar("war3_killgold","2");
+	AssistGoldCvar=CreateConVar("war3_assistgold","1");
 		
-		ParseXPSettingsFile();
+	ParseXPSettingsFile();
 		
 		// l4d
-		KillSmokerXPCvar=CreateConVar("war3_l4d_smokerxp","50","XP awarded to a player killing a Smoker");
-		KillBoomerXPCvar=CreateConVar("war3_l4d_boomerxp","50","XP awarded to a player killing a Boomer");
-		KillHunterXPCvar=CreateConVar("war3_l4d_hunterxp","50","XP awarded to a player killing a Hunter");
-		KillJockeyXPCvar=CreateConVar("war3_l4d_jockeyexp","50","XP awarded to a player killing a Jockey");
-		KillSpitterXPCvar=CreateConVar("war3_l4d_spitterxp","50","XP awarded to a player killing a Spitter");
-		KillChargerXPCvar=CreateConVar("war3_l4d_chargerexp","50","XP awarded to a player killing a Charger");
-		KillCommonXPCvar=CreateConVar("war3_l4d_commonexp","5","XP awarded to a player killing a common infected");
-		KillUncommonXPCvar=CreateConVar("war3_l4d_uncommonexp","10","XP awarded to a player killing a uncommon infected");
-		
-		 
-		if(War3_GetGame()==CS){
-			
-			if(!HookEventEx("round_end",War3Source_RoundOverEvent))
-			{
-				PrintToServer("[War3Source] Could not hook the round_end event.");
-			}
-		}
-		
-		else if(War3_GetGame()==Game_TF)
+	KillSmokerXPCvar=CreateConVar("war3_l4d_smokerxp","50","XP awarded to a player killing a Smoker");
+	KillBoomerXPCvar=CreateConVar("war3_l4d_boomerxp","50","XP awarded to a player killing a Boomer");
+	KillHunterXPCvar=CreateConVar("war3_l4d_hunterxp","50","XP awarded to a player killing a Hunter");
+	KillJockeyXPCvar=CreateConVar("war3_l4d_jockeyexp","50","XP awarded to a player killing a Jockey");
+	KillSpitterXPCvar=CreateConVar("war3_l4d_spitterxp","50","XP awarded to a player killing a Spitter");
+	KillChargerXPCvar=CreateConVar("war3_l4d_chargerexp","50","XP awarded to a player killing a Charger");
+	KillCommonXPCvar=CreateConVar("war3_l4d_commonexp","5","XP awarded to a player killing a common infected");
+	KillUncommonXPCvar=CreateConVar("war3_l4d_uncommonexp","10","XP awarded to a player killing a uncommon infected");
+	
+
+	if(War3_GetGame()==CS){
+		if(!HookEventEx("round_end",War3Source_RoundOverEvent))
 		{
-			if(!HookEventEx("teamplay_round_win",War3Source_RoundOverEvent)) //usual win xp
-			{
-				PrintToServer("[War3Source] Could not hook the teamplay_round_win event.");
-				
-			}
+			PrintToServer("[War3Source] Could not hook the round_end event.");
 		}
-		else if(War3_IsL4DEngine())
-		{		
-			MZombieClass = FindSendPropInfo("CTerrorPlayer", "m_zombieClass");
+	}
+	else if(War3_GetGame()==Game_TF)
+	{
+		if(!HookEventEx("teamplay_round_win",War3Source_RoundOverEvent)) //usual win xp
+		{
+			PrintToServer("[War3Source] Could not hook the teamplay_round_win event.");
+			
 		}
-	}	
+	}
+	else if(War3_IsL4DEngine())
+	{		
+		MZombieClass = FindSendPropInfo("CTerrorPlayer", "m_zombieClass");
+	}
 }
 public OnMapStart()
 {
@@ -118,10 +113,8 @@ public OnMapStart()
 }
 public bool:InitNativesForwards()
 {
-	if(W3()){
-		CreateNative("W3GetReqXP" ,NW3GetReqXP);
-		CreateNative("War3_ShowXP",Native_War3_ShowXP);
-	}
+	CreateNative("W3GetReqXP" ,NW3GetReqXP);
+	CreateNative("War3_ShowXP",Native_War3_ShowXP);
 	CreateNative("W3GetKillXP",NW3GetKillXP);
 
 	CreateNative("W3GetMaxGold",NW3GetMaxGold);
@@ -205,15 +198,40 @@ ParseXPSettingsFile(){
 	// required xp, long term
 	KvGetString(keyValue,"required_xp",read,sizeof(read));
 	new tokencount=StrTokenCount(read);
+	//if(tokencount!=MAXLEVELXPDEFINED+1)
+		//return SetFailState("XP config improperly formatted, not enought or too much levels defined?\ntokencount=%i MAXLEVELXPDEFINED=%i <-- you need to Add +1 to max in your head",tokencount,MAXLEVELXPDEFINED);
+	
 	if(tokencount!=MAXLEVELXPDEFINED+1)
-		return SetFailState("XP config improperly formatted, not enought or too much levels defined?");
-			
-	decl String:temp_iter[16];
-	for(new x=1;x<=tokencount;x++)
 	{
-		// store it
-		StrToken(read,x,temp_iter,15);
-		XPLongTermREQXP[x-1]=StringToInt(temp_iter);
+		LogError("required xp, long term config improperly formatted, not enought or too much levels defined?");
+		new maxleveldff=MAXLEVELXPDEFINED+1;
+		new CopyLastNum=1;
+		decl String:temp_iter[16];
+		for(new x=1;x<=maxleveldff;x++)
+		{
+			if(x>tokencount)
+			{
+				// create it (it does not exist)
+				XPLongTermREQXP[x-1]=CopyLastNum*2;    // Maybe should test for copylastnum to be zero??
+			}
+			else
+			{
+				// store it
+				StrToken(read,x,temp_iter,15);
+				XPLongTermREQXP[x-1]=StringToInt(temp_iter);
+				CopyLastNum=XPLongTermREQXP[x-1];
+			}
+		}
+	}
+	else
+	{
+		decl String:temp_iter[16];
+		for(new x=1;x<=tokencount;x++)
+		{
+			// store it
+			StrToken(read,x,temp_iter,15);
+			XPLongTermREQXP[x-1]=StringToInt(temp_iter);
+		}
 	}
 	
 	
@@ -223,16 +241,48 @@ ParseXPSettingsFile(){
 	// kill xp, long term
 	KvGetString(keyValue,"kill_xp",read,sizeof(read));
 	tokencount=StrTokenCount(read);
-	if(tokencount!=MAXLEVELXPDEFINED+1)
-		return SetFailState("XP config improperly formatted, not enought or too much levels defined?");
+	//if(tokencount!=MAXLEVELXPDEFINED+1)
+		//return SetFailState("XP config improperly formatted, not enought or too much levels defined?");
 			
-	for(new x=1;x<=tokencount;x++)
-	{
+	//for(new x=1;x<=tokencount;x++)
+	//{
 		// store it
-		StrToken(read,x,temp_iter,15);
-		XPLongTermKillXP[x-1]=StringToInt(temp_iter);
-	}
+		//StrToken(read,x,temp_iter,15);
+		//XPLongTermKillXP[x-1]=StringToInt(temp_iter);
+	//}
 	
+	if(tokencount!=MAXLEVELXPDEFINED+1)
+	{
+		LogError("kill xp, long term config improperly formatted, not enought or too much levels defined?");
+		new maxleveldff=MAXLEVELXPDEFINED+1;
+		new CopyLastNum=1;
+		decl String:temp_iter[16];
+		for(new x=1;x<=maxleveldff;x++)
+		{
+			if(x>tokencount)
+			{
+				// create it (it does not exist)
+				XPLongTermKillXP[x-1]=CopyLastNum*2;
+			}
+			else
+			{
+				// store it
+				StrToken(read,x,temp_iter,15);
+				XPLongTermKillXP[x-1]=StringToInt(temp_iter);
+				CopyLastNum=XPLongTermKillXP[x-1];
+			}
+		}
+	}
+	else
+	{
+		decl String:temp_iter[16];
+		for(new x=1;x<=tokencount;x++)
+		{
+			// store it
+			StrToken(read,x,temp_iter,15);
+			XPLongTermKillXP[x-1]=StringToInt(temp_iter);
+		}
+	}
 	
 	
 	
@@ -244,14 +294,48 @@ ParseXPSettingsFile(){
 	// required xp, short term
 	KvGetString(keyValue,"required_xp",read,sizeof(read));
 	tokencount=StrTokenCount(read);
-	if(tokencount!=MAXLEVELXPDEFINED+1)
-		return SetFailState("XP config improperly formatted, not enought or too much levels defined?");
-	for(new x=1;x<=tokencount;x++)
-	{
+	//if(tokencount!=MAXLEVELXPDEFINED+1)
+		//return SetFailState("XP config improperly formatted, not enought or too much levels defined?");
+	//for(new x=1;x<=tokencount;x++)
+	//{
 		// store it
-		StrToken(read,x,temp_iter,15);
-		XPShortTermREQXP[x-1]=StringToInt(temp_iter);
+		//StrToken(read,x,temp_iter,15);
+		//XPShortTermREQXP[x-1]=StringToInt(temp_iter);
+	//}
+	
+	if(tokencount!=MAXLEVELXPDEFINED+1)
+	{
+		LogError("required xp, short term config improperly formatted, not enought or too much levels defined?");
+		new maxleveldff=MAXLEVELXPDEFINED+1;
+		new CopyLastNum=1;
+		decl String:temp_iter[16];
+		for(new x=1;x<=maxleveldff;x++)
+		{
+			if(x>tokencount)
+			{
+				// create it (it does not exist)
+				XPShortTermREQXP[x-1]=CopyLastNum*2;
+			}
+			else
+			{
+				// store it
+				StrToken(read,x,temp_iter,15);
+				XPShortTermREQXP[x-1]=StringToInt(temp_iter);
+				CopyLastNum=XPShortTermREQXP[x-1];
+			}
+		}
 	}
+	else
+	{
+		decl String:temp_iter[16];
+		for(new x=1;x<=tokencount;x++)
+		{
+			// store it
+			StrToken(read,x,temp_iter,15);
+			XPShortTermREQXP[x-1]=StringToInt(temp_iter);
+		}
+	}
+
 	
 	
 	
@@ -260,16 +344,49 @@ ParseXPSettingsFile(){
 	// kill xp, short term
 	KvGetString(keyValue,"kill_xp",read,sizeof(read));
 	tokencount=StrTokenCount(read);
-	if(tokencount!=MAXLEVELXPDEFINED+1)
-		return SetFailState("XP config improperly formatted, not enought or too much levels defined?");
+	//if(tokencount!=MAXLEVELXPDEFINED+1)
+		//return SetFailState("XP config improperly formatted, not enought or too much levels defined?");
 		
 		
-	for(new x=1;x<=tokencount;x++)
-	{
+	//for(new x=1;x<=tokencount;x++)
+	//{
 		// store it
-		StrToken(read,x,temp_iter,15);
-		XPShortTermKillXP[x-1]=StringToInt(temp_iter);
+		//StrToken(read,x,temp_iter,15);
+		//XPShortTermKillXP[x-1]=StringToInt(temp_iter);
+	//}
+	if(tokencount!=MAXLEVELXPDEFINED+1)
+	{
+		LogError("kill xp, short term config improperly formatted, not enought or too much levels defined?");
+		new maxleveldff=MAXLEVELXPDEFINED+1;
+		new CopyLastNum=1;
+		decl String:temp_iter[16];
+		for(new x=1;x<=maxleveldff;x++)
+		{
+			if(x>tokencount)
+			{
+				// create it (it does not exist)
+				XPShortTermKillXP[x-1]=CopyLastNum*2;
+			}
+			else
+			{
+				// store it
+				StrToken(read,x,temp_iter,15);
+				XPShortTermKillXP[x-1]=StringToInt(temp_iter);
+				CopyLastNum=XPShortTermKillXP[x-1];
+			}
+		}
 	}
+	else
+	{
+		decl String:temp_iter[16];
+		for(new x=1;x<=tokencount;x++)
+		{
+			// store it
+			StrToken(read,x,temp_iter,15);
+			XPShortTermKillXP[x-1]=StringToInt(temp_iter);
+		}
+	}
+	
 	
 	return true;
 }
@@ -653,10 +770,8 @@ bool:IsShortTerm(){
 
 
 public OnWar3Event(W3EVENT:event,client){
-	if(W3()){
-		if(event==DoLevelCheck){
-			LevelCheck(client);
-		}
+	if(event==DoLevelCheck){
+		LevelCheck(client);
 	}
 }
 
@@ -675,23 +790,23 @@ LevelCheck(client){
 			skilllevel=War3_GetSkillLevelINTERNAL(client,race,i);
 			if(!War3_IsSkillUltimate(race,i))
 			{
-            // El Diablo: I want to be able to allow skills to reach maximum skill level via skill points.
-            //            I do not want to put a limit on skill points because of the
-            //            direction I'm going with my branch of the war3source.
-                NoSpendSkillsLimitCvar=FindConVar("war3_no_spendskills_limit");
-                if (!GetConVarBool(NoSpendSkillsLimitCvar))
-                {
-				    if(skilllevel*2>curlevel+1)
-                    {
-				     ClearSkillLevels(client,race);
-				     War3_ChatMessage(client,"%T","A skill is over the maximum level allowed for your current level, please reselect your skills",client);
-				     W3CreateEvent(DoShowSpendskillsMenu,client);
-				    }
-                }
+			// El Diablo: I want to be able to allow skills to reach maximum skill level via skill points.
+			//            I do not want to put a limit on skill points because of the
+			//            direction I'm going with my branch of the war3source.
+				NoSpendSkillsLimitCvar=FindConVar("war3_no_spendskills_limit");
+				if (!GetConVarBool(NoSpendSkillsLimitCvar))
+				{
+					if(skilllevel*2>curlevel+1)
+					{
+						ClearSkillLevels(client,race);
+						War3_ChatMessage(client,"%T","A skill is over the maximum level allowed for your current level, please reselect your skills",client);
+						W3CreateEvent(DoShowSpendskillsMenu,client);
+					}
+				}
 			}
 			else
 			{
-            // El Diablo: Currently keeping the limit on the ultimates
+			// El Diablo: Currently keeping the limit on the ultimates
 				if(skilllevel>0&&skilllevel*2+ultminlevel-1>curlevel+1){
 					ClearSkillLevels(client,race);
 					War3_ChatMessage(client,"%T","A ultimate is over the maximum level allowed for your current level, please reselect your skills",client);
@@ -741,7 +856,7 @@ LevelCheck(client){
 			else{
 				keepchecking=false;
 			}
-	
+
 		}
 		
 		if(W3GetLevelsSpent(client,race)<War3_GetLevel(client,race)){

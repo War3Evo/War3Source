@@ -66,7 +66,6 @@ public Plugin:myinfo=
 
 public OnPluginStart()
 {
-	CreateConVar("war3evo_DamageSystem",PLUGIN_VERSION,"War3evo Damage System",FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_DONTRECORD);
 	if(GameTF())
 	{
 		PyroW3ChanceModifierCvar=CreateConVar("war3_pyro_w3chancemod","0.500","Float 0.0 - 1.0");

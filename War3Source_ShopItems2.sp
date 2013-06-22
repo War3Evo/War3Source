@@ -57,7 +57,7 @@ enum ITEMENUM{ ///
 	
 	*/
 }
-new ItemID[ITEMENUM];
+new ItemID[MAXITEMS];
 
 public Plugin:myinfo = 
 {
@@ -79,14 +79,21 @@ public Action:test(Handle:t,any:a){
 
 public OnWar3LoadRaceOrItemOrdered(num)
 {
-	ItemID[POSTHASTE]=War3_CreateShopItem2T("posthaste",10);	
-	if(ItemID[POSTHASTE]==0){
-		DP("ERR ITEM ID RETURNED IS ZERO");
+	if(num==10)
+	{
+
+		for(new x=0;x<MAXITEMS;x++)
+			ItemID[x]=0;
+
+		ItemID[POSTHASTE]=War3_CreateShopItem2T("posthaste",10);	
+		if(ItemID[POSTHASTE]==0){
+			DP("ERR ITEM ID RETURNED IS ZERO");
+		}
+		ItemID[TRINKET]=War3_CreateShopItem2T("trinket",15);
+		ItemID[LIFETUBE]=War3_CreateShopItem2T("lifetube",40);
+		ItemID[SNAKE_BRACELET]=War3_CreateShopItem2T("snakebracelet",10);
+		ItemID[FORTIFIED_BRACER]=War3_CreateShopItem2T("fortifiedbracer",10);
 	}
-	ItemID[TRINKET]=War3_CreateShopItem2T("trinket",15);
-	ItemID[LIFETUBE]=War3_CreateShopItem2T("lifetube",40);
-	ItemID[SNAKE_BRACELET]=War3_CreateShopItem2T("snakebracelet",10);
-	ItemID[FORTIFIED_BRACER]=War3_CreateShopItem2T("fortifiedbracer",10);
 }
 public OnMapStart()
 {
@@ -135,7 +142,7 @@ public OnItem2Lost(client,item){ //deactivate passives , client may have disconn
 public OnW3TakeDmgBulletPre(victim,attacker,Float:damage)
 {
 //sh has no shop2 items
-	if(W3()&&IS_PLAYER(victim)&&IS_PLAYER(attacker)&&victim>0&&attacker>0&&attacker!=victim)
+	if(IS_PLAYER(victim)&&IS_PLAYER(attacker)&&victim>0&&attacker>0&&attacker!=victim)
 	{
 		new vteam=GetClientTeam(victim);
 		new ateam=GetClientTeam(attacker);
