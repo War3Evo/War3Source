@@ -43,7 +43,7 @@ public OnPluginStart()
 	m_SaveXPConVar=CreateConVar("war3_savexp","1");
 	W3SetVar(hSaveEnabledCvar,m_SaveXPConVar);
 
-	hSetRaceOnJoinCvar=CreateConVar("war3_set_job_on_join","1");
+	hSetRaceOnJoinCvar=CreateConVar("war3_set_race_on_join","1");
 
 	m_AutosaveTime=CreateConVar("war3_autosavetime","60");
 	hCvarPrintOnSave=CreateConVar("war3_print_on_autosave","0","Print a message to chat when xp is auto saved?");
