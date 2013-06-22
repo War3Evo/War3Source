@@ -272,7 +272,7 @@ public NWar3_RaceOnPluginStart(Handle:plugin,numParams){
 			raceSkillDescReplaceNum[x][i]=0;
 		}
 		
-		Call_StartForward(g_OnWar3PluginReadyHandle2);
+		Call_StartForward(g_OnWar3PluginReadyHandle3);
 		Call_PushCell(-1);
 		Call_PushCell(x);
 		Call_PushString(shortname);
