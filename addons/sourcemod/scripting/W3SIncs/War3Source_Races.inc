@@ -17,7 +17,7 @@ native War3_AddRaceSkill(raceid,String:tskillorultname[],String:tskillorultdescr
 
 //translated
 //creates a new race, returns the race id
-native War3_CreateNewRaceT(String:shortname[],reload_race_id=0);
+native War3_CreateNewRaceT(String:shortname[],String:shortdesc[],reload_race_id=0);
 
 //translated
 //adds a skill or a ultimate
