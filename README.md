@@ -51,3 +51,9 @@ languages, but reached its limit in performance and features compared to W3S.
 The mod was originally founded by Anthony Iacono (AKA "pimpinjuice") who passed it on to Yi (Derek) Luo AKA Ownage | Ownz (DarkEnergy) who then
 passed it on to the community. To see a list of contributors since we've moved to Github check https://github.com/War3Evo/War3Source/contributors
 
+
+# Accepting Donations #
+
+Want to support my efforts?
+
+http://www.war3evo.info/donation/
