@@ -12,6 +12,7 @@
 #include <cstrike>
 
 #include "W3SIncs/War3Source_Constants"
+#include "W3SIncs/War3Source_Engine_Download_Control"
 #include "W3SIncs/War3Source_Bots"
 #include "W3SIncs/colors"
 #include "W3SIncs/War3Source_Aura"
@@ -19,6 +20,7 @@
 #include "W3SIncs/War3Source_Races"
 #include "W3SIncs/War3Source_Logging"
 #include "W3SIncs/War3Source_Gamecheck"
+
 
 //Interface version, change this when the API requirement changes to force a recompile
 //There will be a system check to make sure all plugins are compiled to the same interface.
@@ -785,8 +787,10 @@ forward OnWar3LoadRaceOrItemOrdered(num);
  * Called when the plugin is ready.
  * this is called many times, increasing num each time 0.0-float(MAXRACES)*10 in 1 increments
  * this is called after all default races have been loaded (OnWar3LoadRaceOrItemOrdered finished)
+ * 
+ * reloadrace_id used by War3_ReloadRace(), can only reload 1 race at a time.
  */
-forward OnWar3LoadRaceOrItemOrdered2(num);
+forward OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[]);
 
 /**
  * Called when the plugin is ready. (after ordered)
@@ -1815,6 +1819,7 @@ stock War3_GetHintSound(String:sSoundFile[], maxlength)
 #include "W3SIncs/War3Source_Effects"
 #include "W3SIncs/War3Source_PrecacheDownload"
 #include "W3SIncs/War3Source_Shopitems2"
+#include "W3SIncs/WCX_Engine_Teleport"
 
 
 /*
