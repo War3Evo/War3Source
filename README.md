@@ -30,4 +30,10 @@ W3S came first to the source engine, WCS came later and matured faster under the
 languages, but reached its limit in performance and features compared to W3S. 
 
 The mod was originally founded by Anthony Iacono (AKA "pimpinjuice") who passed it on to Yi (Derek) Luo AKA Ownage | Ownz (DarkEnergy) who then
-passed it on to the community. To see a list of contributors since we've moved to Github check https://github.com/War3Source/War3Source/contributors
+passed it on to the community. To see a list of contributors since we've moved to Github check https://github.com/War3Evo/War3Source/contributors
+
+
+NOTE:
+
+Branch War3Source-El-Diablo-Updates will be a rework of the War3Source engine in order to create compatiblity with War3Evo developers.   This will be the public version of War3Evo's War3Source Engine and still keep compatibiliy between games.
+
