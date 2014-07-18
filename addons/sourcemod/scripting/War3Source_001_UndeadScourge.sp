@@ -42,13 +42,22 @@ new SKILL_LEECH, SKILL_SPEED, SKILL_LOWGRAV, SKILL_SUICIDE;
 public OnPluginStart()
 {
     LoadTranslations("w3s.race.undead.phrases.txt");
+
+    War3_RaceOnPluginStart("undead");
 }
 
-public OnWar3LoadRaceOrItemOrdered(num)
+public OnPluginEnd()
 {
-    if(num == 10)
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("undead");
+}
+
+
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
+{
+    if(num == 10||(reloadrace_id>0&&StrEqual("undead",shortname,false)))
     {
-        thisRaceID = War3_CreateNewRaceT("undead");
+        thisRaceID = War3_CreateNewRaceT("undead","Suicidal,fast,leech hp",reloadrace_id);
         SKILL_LEECH = War3_AddRaceSkillT(thisRaceID, "VampiricAura", false, 4, "20%");
         SKILL_SPEED = War3_AddRaceSkillT(thisRaceID, "UnholyAura", false, 4, "20%");
         SKILL_LOWGRAV = War3_AddRaceSkillT(thisRaceID, "Levitation", false, 4, "0.5");
