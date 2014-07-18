@@ -256,7 +256,7 @@ War3Source_ChangeRaceMenu(client,bool:forceUncategorized=false)
             SetSafeMenuTitle(crMenu,"%s\n \n",title);
             // Iteriate through the races and print them out
             decl String:rname[64];
-            decl String:rdisp[128];
+            decl String:rdisp[128],String:ShortDesc[32];
 
 
             new racelist[MAXRACES];
@@ -328,6 +328,9 @@ War3Source_ChangeRaceMenu(client,bool:forceUncategorized=false)
                     AddMenuItem(crMenu,rbuf,rdisp,ITEMDRAW_DISABLED);
                     continue;
                 }
+                War3_GetRaceShortdesc(x,ShortDesc,sizeof(ShortDesc));
+                Format(rdisp,sizeof(rdisp),"%s\n%s",rdisp,ShortDesc);
+
                 AddMenuItem(crMenu,rbuf,rdisp,(minlevel<=W3GetTotalLevels(client)||W3IsDeveloper(client))?ITEMDRAW_DEFAULT:ITEMDRAW_DISABLED);
             }
         }

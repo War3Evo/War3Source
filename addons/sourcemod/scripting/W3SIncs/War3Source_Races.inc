@@ -31,6 +31,9 @@ native War3_CreateRaceEnd(raceid);
 native War3_GetRaceName(raceid,String:retstr[],maxlen);
 native War3_GetRaceShortname(raceid,String:retstr[],maxlen);
 
+native War3_GetRaceShortdesc(raceid,String:retstr[],maxlen);
+
+
 /*
 // Temporary removed, it seems to serve no purpose
 #pragma deprecated Not Fully Implemented, possibly in the future
@@ -121,3 +124,39 @@ native bool:War3_IsRaceReloading();
 forward OnWar3RaceEnabled(newrace);
 forward OnWar3RaceDisabled(oldrace);
 
+
+//=============================================================================
+// RACE DEPENDENCIES
+//=============================================================================
+/**
+ * Adds a dependency on a race
+ *
+ * @param iRaceID			 Race ID
+ * @param iRequiredRace		 Required Skill ID
+ * @param iRequiredLevel	 Required Level Num
+ * @return					 true on success, otherwhise false!
+ * @error					 Thrown on invalid param num/race
+ */
+native bool:War3_SetRaceDependency(iRaceID, iRequiredRace, iRequiredLevel);
+
+/**
+ * Removes any known dependency from a race(if any)
+ * NOTE: you should be able to call this safetly without having to bother about anything,
+ * since no error will be thrown if there currently aren't any active dependencys on this
+ *
+ * @param iRaceID		 Race ID
+ * @noreturn
+ * @error				 Thrown on invalid param num/race
+ */
+native War3_RemoveRaceDependency(iRaceID, iRequiredRace=0);
+
+/**
+ * Retrieves various informations about a depending skill
+ * NOTE: This can be called to check if there is any dependency or not
+ *
+ * @param iRaceID		 Race ID
+ * @param IRequiredID	 Find Required Race ID
+ * @return				 returns required level
+ * @error				 Thrown on invalid param num/race
+ */
+native War3_FindRaceDependency(iRaceID, IRequiredID);

@@ -15,6 +15,7 @@ new totalRacesLoaded=0;  ///USE raceid=1;raceid<=GetRacesLoaded();raceid++ for l
 
 new String:raceName[MAXRACES][32];
 new String:raceShortname[MAXRACES][16];
+new String:raceShortdesc[MAXRACES][32];
 new bool:raceTranslated[MAXRACES];
 new bool:ignoreRaceEnd; ///dont do anything on CreateRaceEnd cuz this its already done once
 
@@ -74,7 +75,6 @@ new bool:RacesAndItemsLoaded;
 new Handle:g_OnWar3PluginReadyHandle; //loadin default races in order
 new Handle:g_OnWar3PluginReadyHandle2; //other races
 new Handle:g_OnWar3PluginReadyHandle3; //other races backwards compatable
-new Handle:g_OnWar3PluginReadyHandleCRR; //El Diablo's Custom Race Reload
 
 
 //END race instance variables
@@ -89,8 +89,6 @@ public OnPluginStart()
     hCvarSetRaceBack=CreateConVar("war3_set_players_race_back_after_reload","1","0 = Disable | 1 = Enable, Set a players race back after reload? | Untested from map to map.");
     hCvarLoadRacesAndItemsOnMapStart=CreateConVar("war3_Load_RacesAndItems_every_map","1","0 = Disable | 1 = Enable, May help speed up map changes if disabled.");
 
-    RegServerCmd("war3_reloadrace", CmdReloadRace,"Reload A Race");
-    
     RegAdminCmd("war3_racelist",Cmdracelist,ADMFLAG_ROOT);
     // Only loads Custom Reload Races into the server at anytime, even if they didn't make it ontime for mapchange
     RegAdminCmd("war3_crrloadraces",Cmdraceload,ADMFLAG_ROOT);
@@ -113,9 +111,8 @@ public Action:Cmdracelist(client,args){
 public bool:InitNativesForwards()
 {
     g_OnWar3PluginReadyHandle = CreateGlobalForward("OnWar3LoadRaceOrItemOrdered", ET_Ignore, Param_Cell);//ordered
-    g_OnWar3PluginReadyHandle2 = CreateGlobalForward("OnWar3LoadRaceOrItemOrdered2", ET_Ignore, Param_Cell);//ordered
+    g_OnWar3PluginReadyHandle2 = CreateGlobalForward("OnWar3LoadRaceOrItemOrdered2", ET_Ignore, Param_Cell, Param_Cell, Param_String);//ordered
     g_OnWar3PluginReadyHandle3 = CreateGlobalForward("OnWar3PluginReady", ET_Ignore); //unodered rest of the items or races. backwards compatable..
-    g_OnWar3PluginReadyHandleCRR = CreateGlobalForward("OnWar3LoadRaceOrItemOrderedCRR", ET_Ignore, Param_Cell, Param_Cell, Param_String); // El Diablo's Custom Race Reload
     
     // Custom Race Reloading Races does not work for translated races.
     CreateNative("War3_RaceOnPluginStart",NWar3_RaceOnPluginStart);
@@ -136,11 +133,12 @@ public bool:InitNativesForwards()
     CreateNative("War3_CreateRaceEnd",NWar3_CreateRaceEnd);
     
     
-    
+
     
     CreateNative("War3_GetRaceName",Native_War3_GetRaceName);
     CreateNative("War3_GetRaceShortname",Native_War3_GetRaceShortname);
-    
+    CreateNative("War3_GetRaceShortdesc",Native_War3_GetRaceShortdesc);
+
     //Seems to serve no purpose:
     //CreateNative("W3GetRaceString",NW3GetRaceString);
     
@@ -202,110 +200,23 @@ LoadRacesAndItems()
         Call_Finish(res);
     }
     
-    //orderd loads 2
-    for(new i; i <= MAXRACES * 10; i++)
-    {
-        Call_StartForward(g_OnWar3PluginReadyHandle2);
-        Call_PushCell(i);
-        Call_Finish(res);
-    }
-    
-    //unorderd loads
-    Call_StartForward(g_OnWar3PluginReadyHandle3);
-    Call_Finish(res);
-    
     // Custom Race Reload Races
     for(new i; i <= MAXRACES * 10; i++)
     {
-        Call_StartForward(g_OnWar3PluginReadyHandleCRR);
+        Call_StartForward(g_OnWar3PluginReadyHandle2);
         Call_PushCell(i);
         Call_PushCell(-1);
         Call_PushString("");
         Call_Finish(res);
     }
 
+    //unorderd loads
+    Call_StartForward(g_OnWar3PluginReadyHandle3);
+    Call_Finish(res);
+
     PrintToServer("RACE ITEM LOAD FINISHED IN %.2f seconds", GetEngineTime() - fStartTime);
     
     
-}
-
-
-new Handle:mystack;
-new String:arg1_shortname[64];
-new String:arg2_plugin[64];
-new String:pluginname[256];
-new raceid_reload;
-public Action:CmdReloadRace(args)
-{
-    if(args<2){
-        DP("Need 2 arguments: <raceshortname> <part of the plugin to reload>");
-        return Plugin_Handled;
-    }
-    GetCmdArg(1, arg1_shortname, sizeof(arg1_shortname));
-    DP("Shortrace Name: %s",arg1_shortname);
-    
-    
-    GetCmdArg(2, arg2_plugin, sizeof(arg2_plugin));
-    DP("Trying to find plugin with name: %s",arg2_plugin);
-    
-    new Handle:plugin = FindPluginByFileCustom(arg2_plugin);
-    if(plugin==INVALID_HANDLE){
-        return Plugin_Handled;
-    }
-    //plugin valid
-    
-    GetPluginFilename(plugin, pluginname, sizeof(pluginname));
-    DP("Plugin Found (first match, verify this): %s",pluginname);
-    
-    raceid_reload=War3_GetRaceIDByShortname(arg1_shortname);
-    if(raceid_reload==0)
-    {
-        DP("Race NOT FOUND by shortname '%s'",arg1_shortname);
-        return Plugin_Handled;
-    }
-    
-    
-    DP("Removing everyone from the race");
-    
-    
-    mystack=CreateStack();
-    for(new client=1;client<=MaxClients;client++){
-        if(War3_GetRace(client)==raceid_reload)
-        {
-            DP("client %d",client);
-            War3_SetRace(client,0);
-            PushStackCell(mystack,client);
-        }
-    }
-    //KILL DA SKILLS!
-    raceSkillCount[raceid_reload]=0;
-    
-    
-    DP("UNLOADING %s",arg2_plugin);
-    ServerCommand("sm plugins unload \"%s\"",pluginname);
-    DP("LOADING %s",arg2_plugin);
-    ServerCommand("sm plugins load \"%s\"",pluginname);
-    CreateTimer(0.1,ReloadRace2);
-    return Plugin_Handled;
-}
-public Action:ReloadRace2(Handle:t,any:a)
-{
-    DP("Issuing race load forwards %s",arg2_plugin);
-    LoadRacesAndItems();
-    
-    DP("Putting races back on clients",arg2_plugin);
-    while(!IsStackEmpty(mystack))
-    {
-        
-        new client;
-        PopStackCell(mystack,client);
-        DP("client %d",client);
-        War3_SetRace(client, raceid_reload);
-    
-    }
-    CloseHandle(mystack);
-    DP("Race reload complete, possible side effects / leaks");
-    //return Plugin_Handled;
 }
 
 
@@ -417,7 +328,7 @@ public Action:Cmdraceload(client,args)
     // Custom Race Load Races
     for(new i; i <= MAXRACES * 10; i++)
     {
-        Call_StartForward(g_OnWar3PluginReadyHandleCRR);
+        Call_StartForward(g_OnWar3PluginReadyHandle2);
         Call_PushCell(i);
         Call_PushCell(-1);
         Call_PushString("");
@@ -488,7 +399,13 @@ public NWar3_RaceOnPluginEnd(Handle:plugin,numParams){
         strcopy(raceSkillDescReplace[RaceOnPluginEndID][i][arg], 64, "");
       }
     }
-    War3_RemoveDependency(RaceOnPluginEndID,raceSkillCount[RaceOnPluginEndID]);
+
+    if(LibraryExists("RaceDependency"))
+    {
+        War3_RemoveDependency(RaceOnPluginEndID,raceSkillCount[RaceOnPluginEndID]);
+        War3_RemoveRaceDependency(RaceOnPluginEndID);
+    }
+    
     raceSkillCount[RaceOnPluginEndID]=0;
     new String:ClientName[128];
     for(new i=1;i<MaxClients;i++){
@@ -542,7 +459,7 @@ public NWar3_RaceOnPluginStart(Handle:plugin,numParams){
     for(new i=0;i<MAXSKILLCOUNT;i++){
       raceSkillDescReplaceNum[x][i]=0;
     }
-    Call_StartForward(g_OnWar3PluginReadyHandleCRR);
+    Call_StartForward(g_OnWar3PluginReadyHandle2);
     Call_PushCell(-1);
     Call_PushCell(x);
     Call_PushString(shortname);
@@ -600,14 +517,15 @@ Race_Finished_Reload(raceid)
 public NWar3_CreateNewRace(Handle:plugin,numParams){
     
     
-    decl String:name[64],String:shortname[16];
+    decl String:name[64],String:shortname[16],String:shortdesc[32];
     GetNativeString(1,name,sizeof(name));
     GetNativeString(2,shortname,sizeof(shortname));
-    new ReloadRaceId_info=GetNativeCell(3);
+    GetNativeString(3,shortdesc,sizeof(shortdesc));
+    new ReloadRaceId_info=GetNativeCell(4);
     
     War3_LogInfo("add race %s %s",name,shortname);
     
-    return CreateNewRace(name,shortname,ReloadRaceId_info);
+    return CreateNewRace(name,shortname,shortdesc,ReloadRaceId_info);
     
 }
 
@@ -637,10 +555,13 @@ public NWar3_CreateNewRaceT(Handle:plugin,numParams){
     
     
     
-    decl String:name[64],String:shortname[32];
+    decl String:name[64],String:shortname[32],String:shortdesc[32];
     GetNativeString(1,shortname,sizeof(shortname));
-    new newraceid=CreateNewRace(name,shortname,0); // Translated races are not supported in custom race reload
-    if(newraceid)
+    GetNativeString(2,shortdesc,sizeof(shortdesc));
+    new ReloadRaceId_info=GetNativeCell(3);
+    
+    new newraceid=CreateNewRace(name,shortname,shortdesc,ReloadRaceId_info);
+    if(newraceid>0)
     {
         raceTranslated[newraceid]=true;
         new String:buf[64];
@@ -725,6 +646,21 @@ public Native_War3_GetRaceShortname(Handle:plugin,numParams)
         new String:race_shortname[64];
         GetRaceShortname(race,race_shortname,sizeof(race_shortname));
         SetNativeString(2,race_shortname,bufsize);
+    }
+}
+GetRaceShortdesc(raceid,String:retstr[],maxlen){
+    new num=strcopy(retstr, maxlen, raceShortdesc[raceid]);
+    return num;
+}
+public Native_War3_GetRaceShortdesc(Handle:plugin,numParams)
+{
+    new race=GetNativeCell(1);
+    new bufsize=GetNativeCell(3);
+    if(race>=1 && race<=GetRacesLoaded())
+    {
+        new String:race_shortdesc[32];
+        GetRaceShortdesc(race,race_shortdesc,sizeof(race_shortdesc));
+        SetNativeString(2,race_shortdesc,bufsize);
     }
 }
 public NWar3_GetRacesLoaded(Handle:plugin,numParams){
@@ -1077,7 +1013,7 @@ public NW3_IsSkillUsingGenericSkill(Handle:plugin,numParams)
     return SkillRedirectedToGSkill[raceid][skill_id];
 }
 
-CreateNewRace(String:tracename[]  ,  String:traceshortname[], TheReloadRaceId){
+CreateNewRace(String:tracename[]  ,  String:traceshortname[], String:traceshortdesc[] , TheReloadRaceId){
     
     
     
@@ -1120,6 +1056,7 @@ CreateNewRace(String:tracename[]  ,  String:traceshortname[], TheReloadRaceId){
         traceid=TheReloadRaceId;
         strcopy(raceName[traceid], 31, tracename);
         strcopy(raceShortname[traceid], 16, traceshortname);
+        strcopy(raceShortdesc[traceid], 32, traceshortdesc);
 
         //make all skills zero so we can easily debug
         for(new i=0;i<MAXSKILLCOUNT;i++){
@@ -1133,6 +1070,7 @@ CreateNewRace(String:tracename[]  ,  String:traceshortname[], TheReloadRaceId){
         traceid=totalRacesLoaded;
         strcopy(raceName[traceid], 31, tracename);
         strcopy(raceShortname[traceid], 16, traceshortname);
+        strcopy(raceShortdesc[traceid], 32, traceshortdesc);
     
         //make all skills zero so we can easily debug
         for(new i=0;i<MAXSKILLCOUNT;i++){
