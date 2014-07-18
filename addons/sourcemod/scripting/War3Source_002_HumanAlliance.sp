@@ -50,8 +50,6 @@ new BeamSprite,HaloSprite;
 new SKILL_INVIS, SKILL_BASH, SKILL_HEALTH,ULT_TELEPORT;
 
 
-//new String:teleportSound[]="war3source/blinkarrival.wav";
-
 public OnPluginStart()
 {
     ultCooldownCvar = CreateConVar("war3_human_teleport_cooldown","20.0","Cooldown between teleports");

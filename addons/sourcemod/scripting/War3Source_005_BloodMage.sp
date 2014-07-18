@@ -113,13 +113,22 @@ public OnPluginStart()
     HookEvent("player_team",PlayerTeamEvent);
     
     LoadTranslations("w3s.race.mage.phrases.txt");
+
+    War3_RaceOnPluginStart("mage");
 }
 
-public OnWar3LoadRaceOrItemOrdered(num)
+public OnPluginEnd()
 {
-    if(num==40)
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("mage");
+}
+
+
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
+{
+    if(num==40||(reloadrace_id>0&&StrEqual("mage",shortname,false)))
     {
-        thisRaceID=War3_CreateNewRaceT("mage");
+        thisRaceID=War3_CreateNewRaceT("mage","Revive others,steal money",reloadrace_id);
         SKILL_REVIVE=War3_AddRaceSkillT(thisRaceID,"Phoenix",false,4,"20-50%","2-8%");
         SKILL_BANISH=War3_AddRaceSkillT(thisRaceID,"Banish",false,4,"20%","0.2");
         SKILL_MONEYSTEAL=War3_AddRaceSkillT(thisRaceID,"SiphonMana",false,4,"8%","1%","10%");
@@ -131,8 +140,6 @@ public OnWar3LoadRaceOrItemOrdered(num)
 
 public OnMapStart()
 {
-    War3_AddSoundFolder(reviveSound, sizeof(reviveSound), "reincarnation.mp3");
-
     BeamSprite=War3_PrecacheBeamSprite();
     HaloSprite=War3_PrecacheHaloSprite();
     //we gonna use theese bloodsprite as "money blood"(change color)
@@ -148,8 +155,6 @@ public OnMapStart()
         FireSprite     = PrecacheModel("materials/sprites/fireburst.vmt");
     }
     
-    War3_AddCustomSound(reviveSound);
-
     // Reset Can Player Revive
     for(new i=1;i<=MAXPLAYERSCUSTOM;i++)
     {
@@ -157,6 +162,14 @@ public OnMapStart()
     }
 }
 
+public OnAddSound(sound_priority)
+{
+    if(sound_priority==PRIORITY_LOW)
+    {
+        War3_AddSoundFolder(reviveSound, sizeof(reviveSound), "reincarnation.mp3");
+        War3_AddSound(reviveSound);
+    }
+}
 
 public OnWar3PlayerAuthed(client)
 {

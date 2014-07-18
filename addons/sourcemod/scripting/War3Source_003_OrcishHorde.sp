@@ -40,6 +40,8 @@ public OnWar3RaceDisabled(oldrace)
     }
 }
 
+new String:lightningSound[256]; //="war3source/lightningbolt.mp3";
+
 new bool:bHasRespawned[MAXPLAYERSCUSTOM]; //cs
 new Handle:RespawnDelayCvar;
 new Handle:ultCooldownCvar;
@@ -66,7 +68,7 @@ new Handle:hCvarDisableCritWithGloves;
 new MaximumWards[]={0,1,2,3,4}; 
 new HealAmount[]={0,1,2,3,5};
 
-new String:lightningSound[256]; //="war3source/lightningbolt.mp3";
+//new String:lightningSound[256]; //="war3source/lightningbolt.mp3";
 
 new SKILL_CRIT,SKILL_NADE_INVIS,SKILL_RECARN_WARD,ULT_LIGHTNING;
 // Effects
@@ -86,12 +88,19 @@ public OnPluginStart()
     CreateTimer(0.1,DeciSecondTimer,_,TIMER_REPEAT);
     
     LoadTranslations("w3s.race.orc.phrases.txt");
-}  
-   
 
-public OnWar3LoadRaceOrItemOrdered(num)
+    War3_RaceOnPluginStart("orc");
+}  
+
+public OnPluginEnd()
 {
-    if(num==30)
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("orc");
+}
+
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
+{
+    if(num==30||(reloadrace_id>0&&StrEqual("orc",shortname,false)))
     {
     
         new String:skill1_name[64]="CriticalGrenade";
@@ -102,7 +111,7 @@ public OnWar3LoadRaceOrItemOrdered(num)
             strcopy(skill2_name,sizeof(skill2_name),"HealingWard");
         }
         
-        thisRaceID=War3_CreateNewRaceT("orc");
+        thisRaceID=War3_CreateNewRaceT("orc","Crits, and Lightning",reloadrace_id);
         //DP("registered ORC %d",thisRaceID);
         SKILL_CRIT=War3_AddRaceSkillT(thisRaceID,"CriticalStrike",false,4);
         SKILL_NADE_INVIS=War3_AddRaceSkillT(thisRaceID,skill1_name,false,4);
@@ -118,8 +127,6 @@ public OnWar3LoadRaceOrItemOrdered(num)
 
 public OnMapStart()
 {
-    War3_AddSoundFolder(lightningSound, sizeof(lightningSound), "lightningbolt.mp3");
-
     BeamSprite=War3_PrecacheBeamSprite(); 
     HaloSprite=War3_PrecacheHaloSprite(); 
     
@@ -131,9 +138,17 @@ public OnMapStart()
     else {
         BloodDrop = PrecacheModel("sprites/blood.vmt");
     }
-
-    War3_AddCustomSound(lightningSound);
 }
+
+public OnAddSound(sound_priority)
+{
+    if(sound_priority==PRIORITY_MEDIUM)
+    {
+        War3_AddSoundFolder(lightningSound, sizeof(lightningSound), "lightningbolt.mp3");
+        War3_AddSound(lightningSound);
+    }
+}
+
 
 public OnRaceChanged(client,oldrace,newrace)
 {

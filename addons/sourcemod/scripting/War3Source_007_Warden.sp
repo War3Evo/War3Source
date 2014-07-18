@@ -96,13 +96,22 @@ public OnPluginStart()
     }
     
     LoadTranslations("w3s.race.warden.phrases.txt");
+
+    War3_RaceOnPluginStart("warden");
 }
 
-public OnWar3LoadRaceOrItemOrdered(num)
+public OnPluginEnd()
 {
-    if(num==70)
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("warden");
+}
+
+
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
+{
+    if(num==70||(reloadrace_id>0&&StrEqual("warden",shortname,false)))
     {
-        thisRaceID=War3_CreateNewRaceT("warden");
+        thisRaceID=War3_CreateNewRaceT("warden","Shadow Strike,Vengence",reloadrace_id);
         SKILL_FANOFKNIVES=War3_AddRaceSkillT(thisRaceID,GAMECSANY?"FanOfKnivesCS":"FanOfKnivesTF",false,4);
         SKILL_BLINK=War3_AddRaceSkillT(thisRaceID,"Immunity",false,4);
         SKILL_SHADOWSTRIKE=War3_AddRaceSkillT(thisRaceID,"ShadowStrike",false,4);
@@ -116,11 +125,6 @@ public OnWar3LoadRaceOrItemOrdered(num)
 
 public OnMapStart()
 {
-    War3_AddSoundFolder(shadowstrikestr, sizeof(shadowstrikestr), "shadowstrikebirth.mp3");
-    War3_AddSoundFolder(ultimateSound, sizeof(ultimateSound), "MiniSpiritPissed1.mp3");
-
-    War3_AddCustomSound(shadowstrikestr);
-    War3_AddCustomSound(ultimateSound);
     BeamSprite=War3_PrecacheBeamSprite();
     HaloSprite=War3_PrecacheHaloSprite();
     if(GAMECSANY){
@@ -132,6 +136,21 @@ public OnMapStart()
         }
     }    
 }
+
+public OnAddSound(sound_priority)
+{
+    if(sound_priority==PRIORITY_HIGH)
+    {
+        War3_AddSoundFolder(shadowstrikestr, sizeof(shadowstrikestr), "shadowstrikebirth.mp3");
+        War3_AddSound(shadowstrikestr);
+    }
+    if(sound_priority==PRIORITY_LOW)
+    {
+        War3_AddSoundFolder(ultimateSound, sizeof(ultimateSound), "MiniSpiritPissed1.mp3");
+        War3_AddSound(ultimateSound);
+    }
+}
+
 
 public OnWar3EventSpawn(client){
     if(RaceDisabled)

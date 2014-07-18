@@ -92,13 +92,22 @@ public OnPluginStart()
     CreateTimer(0.2,CalcConduit,_,TIMER_REPEAT);
     
     LoadTranslations("w3s.race.cd.phrases.txt");
+
+    War3_RaceOnPluginStart("cd");
 }
 
-public OnWar3LoadRaceOrItemOrdered(num)
+
+public OnPluginEnd()
 {
-    if(num==90)
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("cd");
+}
+
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
+{
+    if(num==90||(reloadrace_id>0&&StrEqual("cd",shortname,false)))
     {
-        thisRaceID=War3_CreateNewRaceT("cd");
+        thisRaceID=War3_CreateNewRaceT("cd","Overload,+ability",reloadrace_id);
         SKILL_TIDE=War3_AddRaceSkillT(thisRaceID,"ElectricTide",false,4);
         SKILL_CONDUIT=War3_AddRaceSkillT(thisRaceID,"CorruptedConduit",false,4);
         SKILL_STATIC=War3_AddRaceSkillT(thisRaceID,"StaticDischarge",false,4);
@@ -112,22 +121,30 @@ public OnWar3LoadRaceOrItemOrdered(num)
 
 public OnMapStart()
 {
-    War3_AddSoundFolder(taunt1, sizeof(taunt1), "cd/feeltheburn2.mp3");
-    War3_AddSoundFolder(taunt2, sizeof(taunt2), "cd/feeltheburn3.mp3");
-    War3_AddSoundFolder(overload1, sizeof(overload1), "cd/overload2.mp3");
-    War3_AddSoundFolder(overloadzap, sizeof(overloadzap), "cd/overloadzap.mp3");
-    War3_AddSoundFolder(overloadstate, sizeof(overloadstate), "cd/ultstate.mp3");
-
     BeamSprite=War3_PrecacheBeamSprite();
     HaloSprite=War3_PrecacheHaloSprite();
     
-    War3_AddCustomSound(taunt1);
-    War3_AddCustomSound(taunt2);
-    War3_AddCustomSound(overload1);
-    War3_AddCustomSound(overloadzap);
-    War3_AddCustomSound(overloadstate);
 }
 
+public OnAddSound(sound_priority)
+{
+    if(sound_priority==PRIORITY_MEDIUM)
+    {
+        War3_AddSoundFolder(overload1, sizeof(overload1), "cd/overload2.mp3");
+        War3_AddSoundFolder(overloadzap, sizeof(overloadzap), "cd/overloadzap.mp3");
+        War3_AddSoundFolder(overloadstate, sizeof(overloadstate), "cd/ultstate.mp3");
+        War3_AddSound(overload1);
+        War3_AddSound(overloadzap);
+        War3_AddSound(overloadstate);
+    }
+    if(sound_priority==PRIORITY_LOW)
+    {
+        War3_AddSoundFolder(taunt1, sizeof(taunt1), "cd/feeltheburn2.mp3");
+        War3_AddSoundFolder(taunt2, sizeof(taunt2), "cd/feeltheburn3.mp3");
+        War3_AddSound(taunt1);
+        War3_AddSound(taunt2);
+    }
+}
 
 
 public OnAbilityCommand(client,ability,bool:pressed)

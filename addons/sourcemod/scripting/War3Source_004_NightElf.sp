@@ -31,7 +31,8 @@ public Plugin:myinfo =
 new ClientTracer;
 new BeamSprite, HaloSprite;
 new bool:bIsEntangled[MAXPLAYERSCUSTOM];
-new String:entangleSound[256];
+//new String:entangleSound[256];
+new String:entangleSound[256]; //="war3source/entanglingrootsdecay1.mp3";
 new Handle:EntangleCooldownCvar;
 
 new SKILL_EVADE, SKILL_THORNS, SKILL_TRUESHOT, ULT_ENTANGLE;
@@ -48,23 +49,41 @@ public OnPluginStart()
     EntangleCooldownCvar=CreateConVar("war3_nightelf_entangle_cooldown", "20", "Cooldown timer.");
 
     LoadTranslations("w3s.race.nightelf.phrases.txt");
+
+    War3_RaceOnPluginStart("nightelf");
+}
+
+public OnPluginEnd()
+{
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("nightelf");
 }
 
 public OnMapStart()
 {
-    War3_AddSoundFolder(entangleSound, sizeof(entangleSound), "entanglingrootsdecay1.mp3");
+    //War3_AddSoundFolder(entangleSound, sizeof(entangleSound), "entanglingrootsdecay1.mp3");
 
     BeamSprite = War3_PrecacheBeamSprite();
     HaloSprite = War3_PrecacheHaloSprite();
 
-    War3_AddCustomSound(entangleSound);
+    //War3_AddCustomSound(entangleSound);
 }
 
-public OnWar3LoadRaceOrItemOrdered(num)
+public OnAddSound(sound_priority)
 {
-    if(num == 40)
+    if(sound_priority==PRIORITY_MEDIUM)
     {
-        thisRaceID = War3_CreateNewRaceT("nightelf");
+        War3_AddSoundFolder(entangleSound, sizeof(entangleSound), "entanglingrootsdecay1.mp3");
+        War3_AddSound(entangleSound);
+    }
+}
+
+
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
+{
+    if(num == 40||(reloadrace_id>0&&StrEqual("orc",shortname,false)))
+    {
+        thisRaceID = War3_CreateNewRaceT("nightelf","Evasion & Roots",reloadrace_id);
         SKILL_EVADE = War3_AddRaceSkillT(thisRaceID, "Evasion", false, 4);
         SKILL_THORNS = War3_AddRaceSkillT(thisRaceID, "ThornsAura", false, 4);
         SKILL_TRUESHOT = War3_AddRaceSkillT(thisRaceID, "TrueshotAura", false, 4);

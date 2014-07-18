@@ -61,13 +61,22 @@ public OnPluginStart()
     ultRangeCvar=CreateConVar("war3_crypt_locust_range","800","Range of locust ultimate");
     
     LoadTranslations("w3s.race.crypt.phrases.txt");
+
+    War3_RaceOnPluginStart("crypt");
 }
 
-public OnWar3LoadRaceOrItemOrdered(num)
+public OnPluginEnd()
 {
-    if(num==80)
-    {                        
-        thisRaceID=War3_CreateNewRaceT("crypt");
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("crypt");
+}
+
+
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
+{
+    if(num==80||(reloadrace_id>0&&StrEqual("crypt",shortname,false)))
+    {
+        thisRaceID=War3_CreateNewRaceT("crypt","Impale,chance +damage",reloadrace_id);
         SKILL_IMPALE=War3_AddRaceSkillT(thisRaceID,"Impale",false,4);
         SKILL_SPIKE=War3_AddRaceSkillT(thisRaceID,War3_GetGame()==Game_CS?"SpikedCarapaceCS":"SpikedCarapaceTF",false,4);
         SKILL_BEETLES=War3_AddRaceSkillT(thisRaceID,"CarrionBeetles",false,4);
@@ -77,11 +86,15 @@ public OnWar3LoadRaceOrItemOrdered(num)
 
 }
 
-public OnMapStart()
+public OnAddSound(sound_priority)
 {
-    War3_AddSoundFolder(ultimateSound, sizeof(ultimateSound), "locustswarmloop.mp3");
-    War3_AddCustomSound(ultimateSound);
+    if(sound_priority==PRIORITY_LOW)
+    {
+        War3_AddSoundFolder(ultimateSound, sizeof(ultimateSound), "locustswarmloop.mp3");
+        War3_AddSound(ultimateSound);
+    }
 }
+
 
 public OnUltimateCommand(client,race,bool:pressed)
 {

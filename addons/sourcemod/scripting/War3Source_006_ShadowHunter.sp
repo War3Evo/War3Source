@@ -77,15 +77,23 @@ public OnPluginStart()
     CreateTimer(1.0,CalcHexHealWaves,_,TIMER_REPEAT);
     
     LoadTranslations("w3s.race.hunter.phrases.txt");
+    
+    War3_RaceOnPluginStart("hunter");
 }
 
-public OnWar3LoadRaceOrItemOrdered(num)
+public OnPluginEnd()
 {
-    if(num==60)
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("hunter");
+}
+
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
+{
+    if(num==60||(reloadrace_id>0&&StrEqual("hunter",shortname,false)))
     {
         
         
-        thisRaceID=War3_CreateNewRaceT("hunter");
+        thisRaceID=War3_CreateNewRaceT("hunter","Serpent wards",reloadrace_id);
         SKILL_HEALINGWAVE=War3_AddRaceSkillT(thisRaceID,"HealingWave",false,4);
         SKILL_HEX=War3_AddRaceSkillT(thisRaceID,"Hex",false,4);
         SKILL_WARD=War3_AddRaceSkillT(thisRaceID,"SerpentWards",false,4);
@@ -97,13 +105,21 @@ public OnWar3LoadRaceOrItemOrdered(num)
 
 }
 
-public OnMapStart()
-{
-    War3_AddSoundFolder(wardDamageSound, sizeof(wardDamageSound), "thunder_clap.mp3");
-    War3_AddSoundFolder(ultimateSound, sizeof(ultimateSound), "divineshield.mp3");
+//public OnMapStart()
+//{
+//    War3_AddSoundFolder(wardDamageSound, sizeof(wardDamageSound), "thunder_clap.mp3");
+//    War3_AddSoundFolder(ultimateSound, sizeof(ultimateSound), "divineshield.mp3");
+//}
 
-    War3_AddCustomSound(ultimateSound);
-    War3_AddCustomSound(wardDamageSound);
+public OnAddSound(sound_priority)
+{
+    if(sound_priority==PRIORITY_LOW)
+    {
+        War3_AddSoundFolder(wardDamageSound, sizeof(wardDamageSound), "thunder_clap.mp3");
+        War3_AddSoundFolder(ultimateSound, sizeof(ultimateSound), "divineshield.mp3");
+        War3_AddSound(ultimateSound);
+        War3_AddSound(wardDamageSound);
+    }
 }
 
 public OnWar3PlayerAuthed(client)
