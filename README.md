@@ -6,6 +6,8 @@ Here are the changes that make it not compatible with War3Source:
 
 * Race Short Descriptions
 
+-- You will have to change every race you have to make this compatible with the stock version of War3Source.
+
 Here are other changes:
 
 * Removed Ownz Race Reloading
