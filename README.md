@@ -35,5 +35,5 @@ passed it on to the community. To see a list of contributors since we've moved t
 
 NOTE:
 
-Branch W3S-El-Diablo-Updates will be a rework of the War3Source engine in order to create compatiblity with War3Evo developers.   This will be the public version of War3Evo's War3Source Engine and still keep compatibiliy between games.
+Branch W3S-El-Diablo-Updates will be a rework of the War3Source engine in order to create compatiblity for War3Evo future developers.   This will be the public version of War3Evo's War3Source Engine and still keep compatibiliy between games.
 
