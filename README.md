@@ -4,9 +4,9 @@ This version is a War3Evo Public version meant to help War3Evo Future developers
 
 Here are the changes that make it not compatible with War3Source:
 
-* Unless CSGO comes out with a linux version of itself, War3Evo will not support CSGO.
-
 * Race Short Descriptions
+* New Downloads Control Engine
+* New Notification System
 
 -- You will have to change every race you have to make this compatible with the stock version of War3Source.
 
