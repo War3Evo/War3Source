@@ -41,11 +41,22 @@ new bool:inSpeed[MAXPLAYERSCUSTOM];
 
 new SKILL_EVADE, SKILL_SWIFT, SKILL_SPEED, ULTIMATE;
 
-public OnWar3LoadRaceOrItemOrdered(num)
+public OnPluginStart()
+{
+    War3_RaceOnPluginStart("rainbowdash");
+}
+
+public OnPluginEnd()
+{
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("rainbowdash");
+}
+
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
 {    
-    if(num==230)
+    if(num==230||(reloadrace_id>0&&StrEqual("rainbowdash",shortname,false)))
     {
-        thisRaceID = War3_CreateNewRace("[MLP:FIM] Rainbow Dash","rainbowdash");
+        thisRaceID = War3_CreateNewRace("[MLP:FIM] Rainbow Dash","rainbowdash","Buff teammates,speed",reloadrace_id);
         SKILL_EVADE = War3_AddRaceSkill(thisRaceID,"Evasion","15% evasion.");
         SKILL_SWIFT = War3_AddRaceSkill(thisRaceID,"Swiftness","+ 15% Attack Speed");
         SKILL_SPEED = War3_AddRaceSkill(thisRaceID,"Speed","(ability) +30% speed for 6 seconds.\nMust not be injured in the last 10 seconds.\nEnds if injured.");

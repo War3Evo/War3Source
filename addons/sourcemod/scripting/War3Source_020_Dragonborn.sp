@@ -74,12 +74,12 @@ new String:ultsndblue[256]; //="war3source/dragonborn/ultblue.mp3";
 new String:ultsndred[256]; //="war3source/dragonborn/ultred.mp3";
 
 
-public OnWar3LoadRaceOrItemOrdered(num)
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
 {
-    if(num==200)
+    if(num==200||(reloadrace_id>0&&StrEqual("dragonborn_o",shortname,false)))
     {
         
-        thisRaceID=War3_CreateNewRaceT("dragonborn_o");
+        thisRaceID=War3_CreateNewRaceT("dragonborn_o","Jarate AoE ultimate",reloadrace_id);
         SKILL_ROAR=War3_AddRaceSkillT(thisRaceID,"Roar",false,4);
         SKILL_SCALES=War3_AddRaceSkillT(thisRaceID,"Scales",false,4);
         SKILL_DRAGONBORN=War3_AddRaceSkillT(thisRaceID,"Dragonborn",false,4);
@@ -94,14 +94,19 @@ public OnPluginStart()
 {
     CreateTimer(0.5,HalfSecondTimer,_,TIMER_REPEAT); //The footstep effect
     LoadTranslations("w3s.race.dragonborn_o.phrases.txt");
+
+    War3_RaceOnPluginStart("dragonborn_o");
 }
+
+public OnPluginEnd()
+{
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("dragonborn_o");
+}
+
 
 public OnMapStart()
 {
-    War3_AddSoundFolder(roarsound, sizeof(roarsound), "dragonborn/roar.mp3");
-    War3_AddSoundFolder(ultsndblue, sizeof(ultsndblue), "dragonborn/ultblue.mp3");
-    War3_AddSoundFolder(ultsndred, sizeof(ultsndred), "dragonborn/ultred.mp3");
-
     War3_PrecacheParticle("explosion_trailSmoke");//ultimate trail
     War3_PrecacheParticle("burningplayer_flyingbits"); //Red Team foot effect
     War3_PrecacheParticle("water_bulletsplash01"); //Blue Team foot effect
@@ -110,10 +115,21 @@ public OnMapStart()
     War3_PrecacheParticle("yikes_text");//Roar Effect Victim
     War3_PrecacheParticle("particle_nemesis_burst_red");//Red Team Roar Caster
     War3_PrecacheParticle("particle_nemesis_burst_blue");//Blue Team Roar Caster
-    War3_AddCustomSound(roarsound);
-    War3_AddCustomSound(ultsndblue);
-    War3_AddCustomSound(ultsndred);
 }
+
+public OnAddSound(sound_priority)
+{
+    if(sound_priority==PRIORITY_MEDIUM)
+    {
+        War3_AddSoundFolder(roarsound, sizeof(roarsound), "dragonborn/roar.mp3");
+        War3_AddSoundFolder(ultsndblue, sizeof(ultsndblue), "dragonborn/ultblue.mp3");
+        War3_AddSoundFolder(ultsndred, sizeof(ultsndred), "dragonborn/ultred.mp3");     War3_AddSound(roarsound);
+        War3_AddSound(roarsound);
+        War3_AddSound(ultsndblue);
+        War3_AddSound(ultsndred);
+    }
+}
+
 
 public OnUltimateCommand(client,race,bool:pressed)
 {

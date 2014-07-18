@@ -10,7 +10,7 @@
 
 //creates a new race, returns the race id
 //a valid race is >0
-native War3_CreateNewRace(String:name[],String:shortname[],reload_race_id=0);
+native War3_CreateNewRace(String:name[],String:shortname[],String:shortdesc[],reload_race_id=0);
 
 //adds a skill or a ultimate
 native War3_AddRaceSkill(raceid,String:tskillorultname[],String:tskillorultdescription[],bool:isult=false,maxskilllevel=DEF_MAX_SKILL_LEVEL);

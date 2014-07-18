@@ -41,18 +41,19 @@ public OnPluginStart()
     ultCooldownCvar=CreateConVar("war3_luna_ultimate_cooldown","20","Luna Moonfangs ultimate cooldown (ultimate)");
     //CreateTimer(3.0,CalcBlessing,_,TIMER_REPEAT);
     LoadTranslations("w3s.race.luna.phrases.txt");
+
+    War3_RaceOnPluginStart("luna");
 }
+
+public OnPluginEnd()
+{
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("luna");
+}
+
 
 public OnMapStart()
 {
-    War3_AddSoundFolder(beamsnd, sizeof(beamsnd), "moonqueen/beam.mp3");
-    War3_AddSoundFolder(lunasnd2, sizeof(lunasnd2), "flashbang_explode2.mp3");
-
-    War3_AddCustomSound( beamsnd );
-    if(GameCS()) {
-
-        War3_AddCustomSound( lunasnd2 );
-    }
     //BeamSprite=War3_PrecacheBeamSprite();
     HaloSprite=War3_PrecacheHaloSprite();
     if(War3_GetGame() == Game_CSGO) {
@@ -71,12 +72,28 @@ public OnMapStart()
     }
 }
 
-public OnWar3LoadRaceOrItemOrdered(num)
+public OnAddSound(sound_priority)
 {
-    if(num==280)
+    if(sound_priority==PRIORITY_HIGH)
+    {
+        War3_AddSoundFolder(beamsnd, sizeof(beamsnd), "moonqueen/beam.mp3");
+
+        War3_AddSound(beamsnd);
+        
+        if(GameCS()) {
+            War3_AddSoundFolder(lunasnd2, sizeof(lunasnd2), "flashbang_explode2.mp3");
+            War3_AddSound(lunasnd2);
+        }
+    }
+}
+
+
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
+{
+    if(num==280||(reloadrace_id>0&&StrEqual("luna",shortname,false)))
     {
 
-        thisRaceID=War3_CreateNewRaceT("luna");
+        thisRaceID=War3_CreateNewRaceT("luna","Lucent Beam,Eclipse",reloadrace_id);
         SKILL_MOONBEAM=War3_AddRaceSkillT(thisRaceID,"LucentBeam",false,4);
         SKILL_BOUNCE=War3_AddRaceSkillT(thisRaceID,"MoonGlaive",false,4);
         SKILL_AURA=War3_AddRaceSkillT(thisRaceID,"LunarBlessing",false,4);

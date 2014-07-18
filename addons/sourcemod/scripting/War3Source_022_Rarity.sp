@@ -57,11 +57,11 @@ new Float:ultDistance=500.0;
 new holdingvictim[MAXPLAYERSCUSTOM]; //the victim being held
 new Handle:holdingTimer[MAXPLAYERSCUSTOM];
 
-public OnWar3LoadRaceOrItemOrdered(num)
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
 {
-    if(num==220)
+    if(num==220||(reloadrace_id>0&&StrEqual("rarity",shortname,false)))
     {
-        thisRaceID=War3_CreateNewRaceT("rarity");
+        thisRaceID=War3_CreateNewRaceT("rarity","Hold,Mesmerize,Heartache",reloadrace_id);
         SKILL_SMITTEN=War3_AddRaceSkillT(thisRaceID,"Smitten",false,4);
         SKILL_HEARTACHE=War3_AddRaceSkillT(thisRaceID,"Heartache",false,4);
         SKILL_SLEEP=War3_AddRaceSkillT(thisRaceID,"Mesmerize",false,4);
@@ -73,7 +73,16 @@ public OnWar3LoadRaceOrItemOrdered(num)
 public OnPluginStart()
 {
     LoadTranslations("w3s.race.rarity.phrases.txt");
+
+    War3_RaceOnPluginStart("rarity");
 }
+
+public OnPluginEnd()
+{
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("rarity");
+}
+
 
 public OnMapStart()
 {

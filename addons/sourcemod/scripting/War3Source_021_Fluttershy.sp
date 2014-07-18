@@ -45,11 +45,11 @@ new Float:HealAmount[5]={0.0,2.0,4.0,6.0,8.0};
 
 new Float:NotBadDuration[5]={0.0,1.0,1.3,1.6,1.8};
 new bNoDamage[MAXPLAYERSCUSTOM];
-public OnWar3LoadRaceOrItemOrdered(num)
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
 {
-    if(num==210)
+    if(num==210||(reloadrace_id>0&&StrEqual("fluttershy",shortname,false)))
     {
-        thisRaceID=War3_CreateNewRaceT("fluttershy");
+        thisRaceID=War3_CreateNewRaceT("fluttershy","Armor,stare master",reloadrace_id);
         SKILL_STARE=War3_AddRaceSkillT(thisRaceID,"StareMaster",false,4);
         SKILL_TOLERATE=War3_AddRaceSkillT(thisRaceID,"Tolerate",false,4); 
         SKILL_KINDNESS=War3_AddRaceSkill(thisRaceID,"Kindness","Heals you and your teammates when both of you are very close, up to 8HP per sec");
@@ -65,7 +65,16 @@ public OnWar3LoadRaceOrItemOrdered(num)
 public OnPluginStart()
 {
     LoadTranslations("w3s.race.fluttershy.phrases.txt");
+
+    War3_RaceOnPluginStart("fluttershy");
 }
+
+public OnPluginEnd()
+{
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("fluttershy");
+}
+
 
 public OnUltimateCommand(client,race,bool:pressed)
 {
