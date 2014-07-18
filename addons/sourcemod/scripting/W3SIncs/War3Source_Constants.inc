@@ -58,6 +58,7 @@ enum W3Var
   EventArg1, //generic war3event arguments
   EventArg2,
   EventArg3,
+  EventArg4,
   
   TransClient,//who to translate
   
