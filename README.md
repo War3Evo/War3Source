@@ -4,6 +4,7 @@ This version is a War3Evo Public version meant to help War3Evo Future developers
 
 Here are the changes that make it not compatible with War3Source:
 
+* New Updated Race Reload system
 * New Race Short Descriptions
 * New Downloads Control Engine
 * New Notification System
