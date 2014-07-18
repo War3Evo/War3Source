@@ -1,3 +1,5 @@
+# WARNING: Not Compatible with War3Source #
+
 # War3Source (W3S) #
 
 War3Source  brings the Warcraft 3 leveling style and races into the game.
