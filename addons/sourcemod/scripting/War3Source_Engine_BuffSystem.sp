@@ -74,7 +74,8 @@ public Native_War3_SetBuff(Handle:plugin,numParams)
     new W3Buff:buffindex=GetNativeCell(2);
     new raceid=GetNativeCell(3);
     new any:value=GetNativeCell(4);
-    SetBuff(client,buffindex,raceid+W3GetItemsLoaded(),value); //ofsetted
+    new buffowner=GetNativeCell(5);
+    SetBuff(client,buffindex,raceid+W3GetItemsLoaded(),value,buffowner); //ofsetted
     /*if(raceid==0){
     new String:buf[64];
     GetPluginFilename(plugin, buf, sizeof(buf));
@@ -90,7 +91,8 @@ public Native_War3_SetBuffItem(Handle:plugin,numParams) //buff is from an item
     new W3Buff:buffindex=GetNativeCell(2);
     new itemid=GetNativeCell(3);
     new any:value=GetNativeCell(4);
-    SetBuff(client,buffindex,itemid,value); //not offseted
+    new buffowner=GetNativeCell(5);
+    SetBuff(client,buffindex,itemid,value,buffowner); //not offseted
     
     /*if(itemid==0){
     new String:buf[64];
@@ -107,7 +109,8 @@ public Native_War3_SetBuffItem2(Handle:plugin,numParams) //buff is from an item
     new W3Buff:buffindex=GetNativeCell(2);
     new itemid=GetNativeCell(3);
     new any:value=GetNativeCell(4);
-    SetBuff(client,buffindex,W3GetItemsLoaded()+War3_GetRacesLoaded()+itemid,value); //not offseted
+    new buffowner=GetNativeCell(5);
+    SetBuff(client,buffindex,W3GetItemsLoaded()+War3_GetRacesLoaded()+itemid,value,buffowner); //not offseted
 
     /*if(itemid==0){
     new String:buf[64];
@@ -252,7 +255,7 @@ public OnClientPutInServer(client){
 
 
 
-SetBuff(client,W3Buff:buffindex,itemraceindex,value)
+SetBuff(client,W3Buff:buffindex,itemraceindex,value,buffowner=-1)
 {
   //PrintToServer("client %d buffindex %d raceitemindex %d value: %d %f",client,buffindex,itemraceindex,value,value);
   buffdebuff[client][buffindex][itemraceindex]=value;
@@ -264,7 +267,8 @@ SetBuff(client,W3Buff:buffindex,itemraceindex,value)
   
   W3SetVar(EventArg1,buffindex); //generic war3event arguments
   W3SetVar(EventArg2,itemraceindex); 
-  W3SetVar(EventArg3,value); 
+  W3SetVar(EventArg3,value);
+  W3SetVar(EventArg4,buffowner);
   W3CreateEvent(W3EVENT:OnBuffChanged,client);
   
   

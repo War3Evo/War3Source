@@ -50,13 +50,33 @@ stock ValidBuff(W3Buff:buffindex) {
     return false;
 }
 
-/*
+/**
  * set a buff, identified as coming from a race
  * value can be int float bool, but has to be consistant, agreed upon by war3 main plugin
- * 
+ *
+ * @param client						client index
+ * @param buffindex						W3Buff property found in constants.inc
+ * @param value							value depends on W3Buff property
+ * @param buffowner						owner whom applied the buff to the client
+ * @return 								no return
+ *
  */
-native War3_SetBuff(client,W3Buff:buffindex,raceid,any:value);
-native War3_SetBuffItem2(client,W3Buff:buffindex,itemid,any:value);
+native War3_SetBuff(client,W3Buff:buffindex,raceid,any:value,buffowner=-1);
+
+
+/**
+ * set a buff, identified as coming from a item
+ * value can be int float bool, but has to be consistant, agreed upon by war3 main plugin
+ *
+ * @param client						client index
+ * @param buffindex						W3Buff property found in constants.inc
+ * @param itemid						item id
+ * @param value							value depends on W3Buff property
+ * @param buffowner						owner whom applied the buff to the client
+ * @return 								no return
+ *
+ */
+native War3_SetBuffItem2(client,W3Buff:buffindex,itemid,any:value,buffowner=-1);
 
 /*
  * set a buff, identified as coming from a item
