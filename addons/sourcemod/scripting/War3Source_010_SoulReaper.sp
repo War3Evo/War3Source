@@ -62,13 +62,20 @@ public OnPluginStart()
     ultCooldownCvar=CreateConVar("war3_sr_ult_cooldown","20","Cooldown time for CD ult overload.");
     
     LoadTranslations("w3s.race.sr.phrases.txt");
+    War3_RaceOnPluginStart("sr");
 }
 
-public OnWar3LoadRaceOrItemOrdered(num)
+public OnPluginEnd()
 {
-    if(num==100)
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("sr");
+}
+
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
+{
+    if(num==100||(reloadrace_id>0&&StrEqual("sr",shortname,false)))
     {
-        thisRaceID=War3_CreateNewRaceT("sr");
+        thisRaceID=War3_CreateNewRaceT("sr","Judgement,Execution",reloadrace_id);
         SKILL_JUDGE=War3_AddRaceSkillT(thisRaceID,"Judgement",false,4);
         SKILL_PRESENCE=War3_AddRaceSkillT(thisRaceID,"WitheringPresence",false,4);
         SKILL_INHUMAN=War3_AddRaceSkillT(thisRaceID,"InhumanNature",false,4);
@@ -82,15 +89,16 @@ public OnWar3LoadRaceOrItemOrdered(num)
     }
 }
 
-public OnMapStart()
+public OnAddSound(sound_priority)
 {
-    War3_AddSoundFolder(judgesnd, sizeof(judgesnd), "sr/judgement.mp3");
-    War3_AddSoundFolder(ultsnd, sizeof(ultsnd), "sr/ult.mp3");
-
-    War3_AddCustomSound(judgesnd);
-    War3_AddCustomSound(ultsnd);
+    if(sound_priority==PRIORITY_MEDIUM)
+    {
+        War3_AddSoundFolder(judgesnd, sizeof(judgesnd), "sr/judgement.mp3");
+        War3_AddSoundFolder(ultsnd, sizeof(ultsnd), "sr/ult.mp3");
+        War3_AddSound(judgesnd);
+        War3_AddSound(ultsnd);
+    }
 }
-
 
 
 public OnAbilityCommand(client,ability,bool:pressed)

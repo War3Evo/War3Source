@@ -58,12 +58,19 @@ public OnPluginStart()
     ultCooldownCvar=CreateConVar("war3_naix_ult_cooldown","20","Cooldown time for Rage.");
     
     LoadTranslations("w3s.race.naix.phrases.txt");
+    War3_RaceOnPluginStart("naix");
 }
-public OnWar3LoadRaceOrItemOrdered(num)
+
+public OnPluginEnd()
 {
-    if(num==120)
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("naix");
+}
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
+{
+    if(num==120||(reloadrace_id>0&&StrEqual("naix",shortname,false)))
     {
-        thisRaceID=War3_CreateNewRaceT("naix");
+        thisRaceID=War3_CreateNewRaceT("naix","Gain health from dmg",reloadrace_id);
 
 
         SKILL_INFEST = War3_AddRaceSkillT(thisRaceID, "Infest", false,4,"5-20%");
@@ -84,14 +91,18 @@ stock bool:IsOurRace(client) {
     return (War3_GetRace(client)==thisRaceID);
 }
 
-
-public OnMapStart() 
-{ 
-    War3_AddSoundFolder(skill1snd, sizeof(skill1snd), "naix/predskill1.mp3");
-    War3_AddSoundFolder(ultsnd, sizeof(ultsnd), "naix/predult.mp3");
-
-    War3_AddCustomSound(skill1snd);
-    War3_AddCustomSound(ultsnd);
+public OnAddSound(sound_priority)
+{
+    if(sound_priority==PRIORITY_LOW)
+    {
+        War3_AddSoundFolder(ultsnd, sizeof(ultsnd), "naix/predult.mp3");
+        War3_AddSound(ultsnd);
+    }
+    if(sound_priority==PRIORITY_BOTTOM)
+    {
+        War3_AddSoundFolder(skill1snd, sizeof(skill1snd), "naix/predskill1.mp3");
+        War3_AddSound(skill1snd);
+    }
 }
 
 public OnWar3EventPostHurt(victim, attacker, Float:damage, const String:weapon[32], bool:isWarcraft)

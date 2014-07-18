@@ -82,6 +82,13 @@ public OnPluginStart()
     }
     RegConsoleCmd("bashme",Cmdbashme);
     LoadTranslations("w3s.race.chronos.phrases.txt");
+
+    War3_RaceOnPluginStart("chronos");
+}
+public OnPluginEnd()
+{
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("chronos");
 }
 public Action:Cmdbashme(client,args){
     static bool:foo=false;
@@ -91,22 +98,29 @@ public Action:Cmdbashme(client,args){
 new glowsprite;
 public OnMapStart()
 {
-    War3_AddSoundFolder(leapsnd, sizeof(leapsnd), "chronos/timeleap.mp3");
-    War3_AddSoundFolder(spheresnd, sizeof(spheresnd), "chronos/sphere.mp3");
-
-    War3_AddCustomSound(leapsnd);
-    War3_AddCustomSound(spheresnd);
     glowsprite=PrecacheModel("sprites/strider_blackball.spr");
     
     BeamSprite=War3_PrecacheBeamSprite();
     HaloSprite=War3_PrecacheHaloSprite();
 }
 
-public OnWar3LoadRaceOrItemOrdered(num)
-{    
-    if(num==140)
+public OnAddSound(sound_priority)
+{
+    if(sound_priority==PRIORITY_MEDIUM)
     {
-        thisRaceID=War3_CreateNewRaceT("chronos");
+        War3_AddSoundFolder(leapsnd, sizeof(leapsnd), "chronos/timeleap.mp3");
+        War3_AddSoundFolder(spheresnd, sizeof(spheresnd), "chronos/sphere.mp3");
+
+        War3_AddSound(leapsnd);
+        War3_AddSound(spheresnd);
+    }
+}
+
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
+{
+    if(num==140||(reloadrace_id>0&&StrEqual("chronos",shortname,false)))
+    {
+        thisRaceID=War3_CreateNewRaceT("chronos","Chronosphere traps victims",reloadrace_id);
         SKILL_LEAP=War3_AddRaceSkillT(thisRaceID,"TimeLeap",false,4);
         SKILL_REWIND=War3_AddRaceSkillT(thisRaceID,"Rewind",false,4);
         SKILL_TIMELOCK=War3_AddRaceSkillT(thisRaceID,"TimeLock",false,4);

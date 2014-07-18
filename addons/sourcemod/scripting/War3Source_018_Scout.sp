@@ -61,7 +61,16 @@ public OnPluginStart()
     
     LoadTranslations("w3s.race.scout_o.phrases.txt");
     CreateTimer(0.1,DeciSecondTimer,_,TIMER_REPEAT);
+
+    War3_RaceOnPluginStart("scout_o");
 }
+
+public OnPluginEnd()
+{
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("scout_o");
+}
+
 
 public OnMapStart()
 {
@@ -70,11 +79,11 @@ public OnMapStart()
     
 }
 
-public OnWar3LoadRaceOrItemOrdered(num)
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
 {
-    if(num==180)
+    if(num==180||(reloadrace_id>0&&StrEqual("scout_o",shortname,false)))
     {
-        thisRaceID=War3_CreateNewRaceT("scout_o");
+        thisRaceID=War3_CreateNewRaceT("scout_o","See cloaked enemies(no spys)",reloadrace_id);
         SKILL_INVIS=War3_AddRaceSkillT(thisRaceID,"Vanish",false,4,"5%","5-8");
         SKILL_TRUESIGHT=War3_AddRaceSkillT(thisRaceID,"TrueSight",false,4,"400-800");
         

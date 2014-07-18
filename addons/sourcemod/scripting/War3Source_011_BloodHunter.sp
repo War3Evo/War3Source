@@ -59,13 +59,22 @@ public OnPluginStart()
     CreateTimer(0.5, BloodCrazyDOTLoop, _, TIMER_REPEAT);
     
     LoadTranslations("w3s.race.bh.phrases.txt");
+
+    War3_RaceOnPluginStart("bh");
 }
 
-public OnWar3LoadRaceOrItemOrdered(num)
+public OnPluginEnd()
 {
-    if(num==110)
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("bh");
+}
+
+
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
+{
+    if(num==110||(reloadrace_id>0&&StrEqual("bh",shortname,false)))
     {
-        thisRaceID = War3_CreateNewRaceT("bh");
+        thisRaceID = War3_CreateNewRaceT("bh","Hemorrhage,Feast",reloadrace_id);
         SKILL_CRAZY = War3_AddRaceSkillT(thisRaceID, "BloodCrazy", false);
         SKILL_FEAST = War3_AddRaceSkillT(thisRaceID, "Feast", false);
         SKILL_SENSE = War3_AddRaceSkillT(thisRaceID, "BloodSense", false);
@@ -74,11 +83,15 @@ public OnWar3LoadRaceOrItemOrdered(num)
     }
 }
 
-public OnMapStart()
+public OnAddSound(sound_priority)
 {
-    War3_AddSoundFolder(ultsnd, sizeof(ultsnd), "bh/ult.mp3");
-    War3_AddCustomSound(ultsnd);
+    if(sound_priority==PRIORITY_MEDIUM)
+    {
+        War3_AddSoundFolder(ultsnd, sizeof(ultsnd), "bh/ult.mp3");
+        War3_AddSound(ultsnd);
+    }
 }
+
 
 
 public OnUltimateCommand(client,race,bool:pressed)

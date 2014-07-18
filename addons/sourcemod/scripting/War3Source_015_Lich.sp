@@ -63,13 +63,20 @@ public OnPluginStart()
     ultRangeCvar=CreateConVar("war3_lich_deathdecay_range","99999","Range of death and decay ultimate");
     
     LoadTranslations("w3s.race.lich_o.phrases.txt");
+    War3_RaceOnPluginStart("lich_o");
 }
 
-public OnWar3LoadRaceOrItemOrdered(num)
+public OnPluginEnd()
 {
-    if(num==150)
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("lich_o");
+}
+
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
+{
+    if(num==150||(reloadrace_id>0&&StrEqual("lich_o",shortname,false)))
     {
-        thisRaceID=War3_CreateNewRaceT("lich_o");
+        thisRaceID=War3_CreateNewRaceT("lich_o","Armor,slow enemy",reloadrace_id);
         SKILL_FROSTNOVA=War3_AddRaceSkillT(thisRaceID,"FrostNova",false,4);
         SKILL_FROSTARMOR=War3_AddRaceSkillT(thisRaceID,"FrostArmor",false,4);
         SKILL_DARKRITUAL=War3_AddRaceSkillT(thisRaceID,"DarkRitual",false,4);
@@ -87,14 +94,24 @@ public OnWar3LoadRaceOrItemOrdered(num)
 
 public OnMapStart()
 {
-    War3_AddSoundFolder(ultsnd, sizeof(ultsnd), "lich/attack_single2.mp3");
-    War3_AddSoundFolder(novasnd, sizeof(novasnd), "lich/ping_patrol.mp3");
-
-    War3_AddCustomSound(ultsnd);
-    War3_AddCustomSound(novasnd);
     BeamSprite=War3_PrecacheBeamSprite();
     HaloSprite=War3_PrecacheHaloSprite();
 }
+
+public OnAddSound(sound_priority)
+{
+    if(sound_priority==PRIORITY_MEDIUM)
+    {
+        War3_AddSoundFolder(ultsnd, sizeof(ultsnd), "lich/attack_single2.mp3");
+        War3_AddSound(ultsnd,STOCK_SOUND);
+    }
+    if(sound_priority==PRIORITY_TOP)
+    {
+        War3_AddSoundFolder(novasnd, sizeof(novasnd), "lich/ping_patrol.mp3");
+        War3_AddSound(novasnd,STOCK_SOUND);
+    }
+}
+
 
 public OnAbilityCommand(client,ability,bool:pressed)
 {

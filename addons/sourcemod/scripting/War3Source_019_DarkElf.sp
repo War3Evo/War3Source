@@ -52,11 +52,11 @@ stock String:tribunal[256]; //="war3source/darkelf/tribunal.mp3";
 stock String:darkorb[256]; //="war3source/darkelf/darkorb.mp3";
 
 
-public OnWar3LoadRaceOrItemOrdered(num)
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
 {
-    if(num==190)
+    if(num==190||(reloadrace_id>0&&StrEqual("darkelf_o",shortname,false)))
     {
-        thisRaceID=War3_CreateNewRaceT("darkelf_o");
+        thisRaceID=War3_CreateNewRaceT("darkelf_o","Blind players",reloadrace_id);
         SKILL_FADE=War3_AddRaceSkillT(thisRaceID,"Fade",false,4);
         SKILL_SLOWFALL=War3_AddRaceSkillT(thisRaceID,"SlowFall",false,4);
         SKILL_TRIBUNAL=War3_AddRaceSkillT(thisRaceID,"Tribunal",false,4);
@@ -69,13 +69,19 @@ public OnPluginStart()
 {
     CreateTimer(0.1,SlowfallTimer,_,TIMER_REPEAT);
     LoadTranslations("w3s.race.darkelf_o.phrases.txt");
+
+    War3_RaceOnPluginStart("darkelf_o");
 }
+
+public OnPluginEnd()
+{
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("darkelf_o");
+}
+
 
 public OnMapStart()
 {
-    War3_AddSoundFolder(tribunal, sizeof(tribunal), "darkelf/tribunal.mp3");
-    War3_AddSoundFolder(darkorb, sizeof(darkorb), "darkelf/darkorb.mp3");
-
     //Only precache them on TF2
     if(War3_GetGame()==Game_TF)
     {
@@ -83,9 +89,20 @@ public OnMapStart()
         War3_PrecacheParticle("teleporter_blue_entrance");
         War3_PrecacheParticle("ghost_smoke");
     }
-    //War3_AddCustomSound(tribunal);
-    //War3_AddCustomSound(darkorb);
 }
+
+public OnAddSound(sound_priority)
+{
+    if(sound_priority==PRIORITY_LOW)
+    {
+        War3_AddSoundFolder(tribunal, sizeof(tribunal), "darkelf/tribunal.mp3");
+        War3_AddSoundFolder(darkorb, sizeof(darkorb), "darkelf/darkorb.mp3");
+        // below was commented out in stock, not sure why?
+        War3_AddSound(tribunal);
+        War3_AddSound(darkorb);
+    }
+}
+
 
 public OnUltimateCommand(client,race,bool:pressed)
 {

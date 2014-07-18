@@ -58,11 +58,11 @@ public OnMapStart()
     Laser=PrecacheModel("materials/sprites/laserbeam.vmt");
 }
 
-public OnWar3LoadRaceOrItemOrdered(num)
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
 {
-    if(num==130)
+    if(num==130||(reloadrace_id>0&&StrEqual("succubus",shortname,false)))
     {
-        thisRaceID=War3_CreateNewRaceT("succubus");
+        thisRaceID=War3_CreateNewRaceT("succubus","Collect Skulls",reloadrace_id);
         
         SKILL_HEADHUNTER = War3_AddRaceSkillT(thisRaceID, "HeadHunter", false,_,"0-20%");    
         SKILL_TOTEM = War3_AddRaceSkillT(thisRaceID, "TIncantation", false);    
@@ -96,7 +96,16 @@ public OnPluginStart()
     totemCurrencyCvar=CreateConVar("war3_succ_totem_currency","0","Currency to use for totem | 0=currency, 1=gold, 2=money");
     
     LoadTranslations("w3s.race.succubus.phrases.txt");
+
+    War3_RaceOnPluginStart("succubus");
 }
+
+public OnPluginEnd()
+{
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("succubus");
+}
+
 public OnRaceChanged(client,oldrace,newrace){
     if(RaceDisabled)
     {

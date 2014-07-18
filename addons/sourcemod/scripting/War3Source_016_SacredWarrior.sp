@@ -61,12 +61,20 @@ public OnPluginStart()
     CreateTimer(1.0,Heal_BurningSpearTimer,_,TIMER_REPEAT);  // Burning Spear DoT Timer
     LoadTranslations("w3s.race.sacredw.phrases.txt");
     ultCooldownCvar=CreateConVar("war3_sacredw_ult_cooldown","20","Cooldown time for ult.");
+    War3_RaceOnPluginStart("sacredw");
 }
-public OnWar3LoadRaceOrItemOrdered(num)
+
+public OnPluginEnd()
 {
-    if(num==160)
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("sacredw");
+}
+
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
+{
+    if(num==160||(reloadrace_id>0&&StrEqual("sacredw",shortname,false)))
     {
-        thisRaceID=War3_CreateNewRaceT("sacredw");
+        thisRaceID=War3_CreateNewRaceT("sacredw","Attkspeed gain-loss hp",reloadrace_id);
         SKILL_VITALITY=War3_AddRaceSkillT(thisRaceID,"InnerVitality",false,4,"1/2/3/4");
         SKILL_SPEAR=War3_AddRaceSkillT(thisRaceID,"BurningSpear",false,4,"1/2/3/4","3","3");
         SKILL_BLOOD=War3_AddRaceSkillT(thisRaceID,"BerserkersBlood",false,4,"1/2/3/4","7");

@@ -63,11 +63,11 @@ new String:hammerboltsound[256]; //="war3source/hammerstorm/stun.mp3";
 new String:ultsnd[256]; //="war3source/hammerstorm/ult.mp3";
 //new String:galvanizesnd[]="war3source/hammerstorm/galvanize.mp3";
 
-public OnWar3LoadRaceOrItemOrdered(num)
+public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
 {
-    if(num==170)
-    {
-        thisRaceID=War3_CreateNewRaceT("hammerstorm");
+	if(num==170||(reloadrace_id>0&&StrEqual("hammerstorm",shortname,false)))
+	{
+        thisRaceID=War3_CreateNewRaceT("hammerstorm","Gods Strength",reloadrace_id);
         SKILL_BOLT=War3_AddRaceSkillT(thisRaceID,"StormBolt",false,4,"150/175/200/225","5/10/15/20");
         SKILL_CLEAVE=War3_AddRaceSkillT(thisRaceID,"GreatCleave",false,4,"10/20/30/40","150");
         SKILL_WARCRY=War3_AddRaceSkillT(thisRaceID,"Warcry",false,4,"1/2/3/4","6/9/12/15");
@@ -83,20 +83,35 @@ public OnPluginStart()
 {
     ultCooldownCvar=CreateConVar("war3_hammerstorm_strength_cooldown","25","Cooldown timer.");
     LoadTranslations("w3s.race.hammerstorm.phrases.txt");
+
+    War3_RaceOnPluginStart("hammerstorm");
 }
+
+public OnPluginEnd()
+{
+    if(LibraryExists("RaceClass"))
+        War3_RaceOnPluginEnd("hammerstorm");
+}
+
 
 public OnMapStart()
 {
-    War3_AddSoundFolder(hammerboltsound, sizeof(hammerboltsound), "hammerstorm/stun.mp3");
-    War3_AddSoundFolder(ultsnd, sizeof(ultsnd), "hammerstorm/ult.mp3");
-
     // Precache the stuff for the beacon ring
     g_BeamSprite = War3_PrecacheBeamSprite();
     g_HaloSprite = War3_PrecacheHaloSprite(); 
-    //Sounds
-    War3_AddCustomSound(hammerboltsound);
-    War3_AddCustomSound(ultsnd);
 }
+
+public OnAddSound(sound_priority)
+{
+    if(sound_priority==PRIORITY_MEDIUM)
+    {
+        War3_AddSoundFolder(hammerboltsound, sizeof(hammerboltsound), "hammerstorm/stun.mp3");
+        War3_AddSoundFolder(ultsnd, sizeof(ultsnd), "hammerstorm/ult.mp3");
+        War3_AddSound(hammerboltsound);
+        War3_AddSound(ultsnd);
+    }
+}
+
 
 public OnWar3EventSpawn(client)
 {
