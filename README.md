@@ -1,5 +1,17 @@
 # WARNING: Not Compatible with War3Source #
 
+This version is a War3Evo Public version meant to help War3Evo Future developers create races for War3Evo.
+
+Here are the changes that make it not compatible with War3Source:
+
+* Race Short Descriptions
+
+Here are other changes:
+
+* Removed Ownz Race Reloading
+* Added Race Dependencies
+
+
 # War3Source (W3S) #
 
 War3Source  brings the Warcraft 3 leveling style and races into the game.
