@@ -8,7 +8,7 @@
 #define GGAME_CSGO 6
 #define GGAME_FOF 7
 
-#define GGAMETYPE GGAME_TF2
+#define GGAMETYPE GGAME_FOF
 //#define GGAMETYPE2 GGAME_TF2_NORMAL
 
 //meanwhile in coding...
