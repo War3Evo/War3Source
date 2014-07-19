@@ -154,13 +154,13 @@ doCloak()
     {
         if(ValidPlayer(x, true) && War3_GetOwnsItem(x, iShopitem[ITEM_CLOAK]))
         {
-			new iWeaponEntity = W3GetCurrentWeaponEnt(x);
-			if(War3_IsMeleeWeapon(iWeaponEntity))
-			{
-				War3_SetBuffItem(x, fInvisibilityItem, iShopitem[ITEM_CLOAK], 0.4);
-			} else {
-				War3_SetBuffItem(x, fInvisibilityItem, iShopitem[ITEM_CLOAK], 0.6);
-			}
+            new iWeaponEntity = W3GetCurrentWeaponEnt(x);
+            if(War3_IsMeleeWeapon(iWeaponEntity))
+            {
+                War3_SetBuffItem(x, fInvisibilityItem, iShopitem[ITEM_CLOAK], 0.4);
+            } else {
+                War3_SetBuffItem(x, fInvisibilityItem, iShopitem[ITEM_CLOAK], 0.6);
+            }
         }
     }
 }
@@ -321,28 +321,11 @@ public OnItemPurchase(client,item)
         return;
     }
 
-    if(item == iShopitem[ITEM_BOOTS])
-    {       
-        if(IsPlayerAlive(client))
-        {
-            War3_ChatMessage(client, "%T", "You strap on your boots", client);
-        }
-    }
-    
-    if(item == iShopitem[ITEM_SOCK])
+    if(IsPlayerAlive(client))
     {
-       
-        if(IsPlayerAlive(client))
-        {
-            War3_ChatMessage(client, "%T", "You pull on your socks", client);
-        }
+        War3_NotifyPlayerItemActivated(client,item,true);
     }
-    
-    if(War3_GetGame() != Game_TF && item == iShopitem[ITEM_HEALTH] && IsPlayerAlive(client))
-    {
-        War3_ChatMessage(client, "%T", "+50 HP", client);
-    }
-    
+
     if(item == iShopitem[ITEM_TOME])
     {
         new iRace = War3_GetRace(client);
@@ -397,7 +380,9 @@ public OnItemLost(client, item)
         return;
     }
 
-    else if(item == iShopitem[ITEM_HEALTH])
+    War3_NotifyPlayerItemActivated(client,item,false);
+
+    if(item == iShopitem[ITEM_HEALTH])
     {
         if(GetClientHealth(client) > War3_GetMaxHP(client))
         {
