@@ -7,6 +7,9 @@
 //=======================================================================
 //                             NATIVE / STOCKS
 //=======================================================================
+//=============================================================================
+// Buff System SET
+//=============================================================================
 
 // Easy natives to apply a W3Buff based on a skill/item
 
@@ -17,30 +20,56 @@
 // MAX LENGTH of values is 32
 // RECALL safe
 // no return
+
+/**
+ *
+ *
+ * @param raceID                        race id
+ * @param skill_ID                      skill id
+ * @param buff                          W3buff property from constants.inc
+ * @param values                        value depends on W3Buff property
+ * @return                              no return
+ *
+ */
 native War3_AddSkillBuff(raceID, skill_ID, W3Buff:buff, any:values[]);
 
-// THESE PERMAMENTLY links to the player's skill level and changes the buffs acordingly
-// If player has race/skill, the value[] corresponding to the level is applied on the buff
-// values = array (usually length 5, with 0th index included, zeroth index is ignored however, internally it calls a resetbuff function to restore default value)
-// of values to set the buff as, CELLS please (int or float, determined by buff itself)
-// MAX LENGTH of values is 32
-// RECALL safe
-// no return
+/**
+ * This does not set if War3_SetOwnsItem, you need to manually do that
+ *
+ * @param item_ID                       item id
+ * @param buff                          W3buff property from constants.inc
+ * @param values                        value depends on W3Buff property
+ * @return                              no return
+ *
+ */
 native War3_AddItemBuff(item_ID, W3Buff:buff, any:value);
 
-// THESE PERMAMENTLY links to the player's skill level and changes the buffs acordingly
-// If player has race/skill, the value[] corresponding to the level is applied on the buff
-// values = array (usually length 5, with 0th index included, zeroth index is ignored however, internally it calls a resetbuff function to restore default value)
-// of values to set the buff as, CELLS please (int or float, determined by buff itself)
-// Beware of duplicate aura short names
-// MAX LENGTH of values is 32
-// RECALL safe
-// no return
-native War3_AddAuraSkillBuff(race_ID, skill_ID, W3Buff:buff, any:values[], 
-                             String:auraShortName[], Float:distance, 
-                             bool:trackotherteam);
+/**
+ * This does not set if War3_SetOwnsItem, you need to manually do that
+ *
+ * @param race_ID                       race id
+ * @param skill_ID                      skill id
+ * @param buff                          W3buff property from constants.inc
+ * @param values                        value depends on W3Buff property
+ * @param auraShortName                 create a aura name
+ * @param distance                      the distance is a float array [1.0,2.0,3.0,4.0]
+ * @param DistanceArraySize             the distance array size
+ * @param trackotherteam                should the aura track the other team?
+ * @param ImmunityCheck                 which immunity to auto check?
+ * @return                              no return
+ *
+ */
+native War3_AddAuraSkillBuff(race_ID, skill_ID, W3Buff:buff, any:values[],
+                             String:auraShortName[], Float:distance[], DistanceArraySize,
+                             bool:trackotherteam, War3Immunity:ImmunityCheck=Immunity_None);
 
-//is a buff index valid? X > 0 and X <  MaxBuffLoopLimitTemp
+/**
+ * is a buff index valid? X > 0 and X <  MaxBuffLoopLimitTemp
+ *
+ * @param buffindex                     W3Buff property found in constants.inc
+ * @return                              returns true if buff is valid / throws an error otherwise
+ *
+ */
 stock ValidBuff(W3Buff:buffindex) {
     if(_:buffindex>=0&&_:buffindex<MaxBuffLoopLimit) {
         return true;
@@ -54,11 +83,11 @@ stock ValidBuff(W3Buff:buffindex) {
  * set a buff, identified as coming from a race
  * value can be int float bool, but has to be consistant, agreed upon by war3 main plugin
  *
- * @param client						client index
- * @param buffindex						W3Buff property found in constants.inc
- * @param value							value depends on W3Buff property
- * @param buffowner						owner whom applied the buff to the client
- * @return 								no return
+ * @param client                        client index
+ * @param buffindex                     W3Buff property found in constants.inc
+ * @param value                         value depends on W3Buff property
+ * @param buffowner                     owner whom applied the buff to the client
+ * @return                              no return
  *
  */
 native War3_SetBuff(client,W3Buff:buffindex,raceid,any:value,buffowner=-1);
@@ -68,12 +97,12 @@ native War3_SetBuff(client,W3Buff:buffindex,raceid,any:value,buffowner=-1);
  * set a buff, identified as coming from a item
  * value can be int float bool, but has to be consistant, agreed upon by war3 main plugin
  *
- * @param client						client index
- * @param buffindex						W3Buff property found in constants.inc
- * @param itemid						item id
- * @param value							value depends on W3Buff property
- * @param buffowner						owner whom applied the buff to the client
- * @return 								no return
+ * @param client                        client index
+ * @param buffindex                     W3Buff property found in constants.inc
+ * @param itemid                        item id
+ * @param value                         value depends on W3Buff property
+ * @param buffowner                     owner whom applied the buff to the client
+ * @return                              no return
  *
  */
 native War3_SetBuffItem2(client,W3Buff:buffindex,itemid,any:value,buffowner=-1);
@@ -82,26 +111,64 @@ native War3_SetBuffItem2(client,W3Buff:buffindex,itemid,any:value,buffowner=-1);
  * set a buff, identified as coming from a item
  * value can be int float bool, but has to be consistant, agreed upon by war3 main plugin
  *
- * @param client						client index
- * @param buffindex						W3Buff property found in constants.inc
- * @param itemid						item id
- * @param value							value depends on W3Buff property
- * @param buffowner						owner whom applied the buff to the client
- * @return 								no return
+ * @param client                        client index
+ * @param buffindex                     W3Buff property found in constants.inc
+ * @param itemid                        item id
+ * @param value                         value depends on W3Buff property
+ * @param buffowner                     owner whom applied the buff to the client
+ * @return                              no return
  *
  */
 native War3_SetBuffItem(client,W3Buff:buffindex,itemid,any:value,buffowner=-1);
 
-native W3BuffCustomOFFSET(); //get offset for custom buff modifier indexes. use War3_SetBuffItem(client,buffindex,W3BuffCustomOFFSET() + NUMBER,value) (YES, ITEM)
+/**
+ * get offset for custom buff modifier indexes. use War3_SetBuffItem(client,buffindex,W3BuffCustomOFFSET() + NUMBER,value) (YES, ITEM)
+ *
+ * @return                              returns offset
+ *
+ */
+native W3BuffCustomOFFSET();
 
-///RESETS a particular buff from your race on this client
+//=============================================================================
+// Buff System RESET
+//=============================================================================
+
+/**
+ * RESETS a particular buff from your race on this client
+ *
+ * @param client                        client index
+ * @param buffindex                     W3Buff property found in constants.inc
+ * @param raceid                        race id
+ * @return                              no return
+ *
+ */
 native W3ResetBuffRace(client,W3Buff:buffindex,raceid);
 
-// Reset a particular buff from a item on thsi client
+/**
+ * RESETS ALL BUFFS PERTAINGIN TO THIS CLIENT AND RACE, basically fully getting rid if all buffs attatched to this player from your race
+ *
+ * @param client                        client index
+ * @param raceid                        race id
+ * @return                              no return
+ *
+ */
+native W3ResetAllBuffRace(client, raceid);
+
+/**
+ * Reset a particular buff from a item on thsi client
+ *
+ * @param client                        client index
+ * @param buffindex                     W3Buff property found in constants.inc
+ * @param itemid                        item id
+ * @return                              no return
+ *
+ */
 native W3ResetBuffItem(client, W3Buff:buffindex, itemid);
 
-///RESETS ALL BUFFS PERTAINGIN TO THIS CLIENT AND RACE, basically fully getting rid if all buffs attatched to this player from your race
-native W3ResetAllBuffRace(client, raceid);
+//=============================================================================
+// Buff System Misc
+//=============================================================================
+
 
 //set player shell glowish color (blood mage, shadow hunter), highest override priority takes effect, all integers
 stock W3SetPlayerColor(client, raceid, r, g, b, a = 255,

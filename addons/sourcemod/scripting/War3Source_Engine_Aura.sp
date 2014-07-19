@@ -10,7 +10,7 @@ public Plugin:myinfo =
     description = "Aura Engine for War3Source"
 };
 
-//new AuraOwner[MAXPLAYERSCUSTOM][MAXAURAS];
+new AuraOwner[MAXPLAYERSCUSTOM][MAXAURAS];
 new bool:AuraOrigin[MAXPLAYERSCUSTOM][MAXAURAS];
 new AuraOriginLevel[MAXPLAYERSCUSTOM][MAXAURAS];
 
@@ -46,7 +46,7 @@ public bool:InitNativesForwards()
     CreateNative("W3RemovePlayerAura",NW3RemovePlayerAura);
     CreateNative("W3HasAura",NW3HasAura);
 
-    g_Forward=CreateGlobalForward("OnW3PlayerAuraStateChanged",ET_Ignore,Param_Cell,Param_Cell,Param_Cell,Param_Cell);
+    g_Forward=CreateGlobalForward("OnW3PlayerAuraStateChanged",ET_Ignore,Param_Cell,Param_Cell,Param_Cell,Param_Cell,Param_Cell);
     return true;
 }
 
@@ -74,7 +74,7 @@ public NW3RegisterAura(Handle:plugin,numParams)
 
         AuraTrackOtherTeam[AuraCount] = bool:GetNativeCell(3);
 
-        War3_LogInfo("Registered aura \"%s\" with a distance of \"%f\". TrackOtherTeam: %i", AuraShort[AuraCount], AuraDistance[1][AuraCount], AuraTrackOtherTeam[AuraCount]);
+        //War3_LogInfo("Registered aura \"%s\" with a distance of \"%f\". TrackOtherTeam: %i", AuraShort[AuraCount], AuraDistance[1][AuraCount], AuraTrackOtherTeam[AuraCount]);
         return AuraCount;
     }
     else
@@ -105,7 +105,7 @@ public NW3RegisterChangingDistanceAura(Handle:plugin,numParams)
         {
             // Change values of aura, since its already registered
             AuraTrackOtherTeam[aura] = bool:GetNativeCell(2);
-            War3_LogInfo("Changed - Registered aura \"%s\" TrackOtherTeam: %i", AuraShort[aura], AuraTrackOtherTeam[aura]);
+            //War3_LogInfo("Changed - Registered aura \"%s\" TrackOtherTeam: %i", AuraShort[aura], AuraTrackOtherTeam[aura]);
             return aura; //already registered
         }
     }
@@ -116,7 +116,7 @@ public NW3RegisterChangingDistanceAura(Handle:plugin,numParams)
 
         AuraTrackOtherTeam[AuraCount] = bool:GetNativeCell(2);
 
-        War3_LogInfo("Registered aura \"%s\" TrackOtherTeam: %i", AuraShort[AuraCount], AuraTrackOtherTeam[AuraCount]);
+        //War3_LogInfo("Registered aura \"%s\" TrackOtherTeam: %i", AuraShort[AuraCount], AuraTrackOtherTeam[AuraCount]);
         return AuraCount;
     }
     else
@@ -218,7 +218,7 @@ public Action:CalcAura(Handle:t)
 
                             {
                                 //DP("aura target on %d",target);
-                                //AuraOwner[target][aura]=client;
+                                AuraOwner[target][aura]=client;
                                 HasAura[target][aura]++;
                                 HasAuraLevel[target][aura]=IntMax(HasAuraLevel[target][aura],AuraOriginLevel[client][aura]); //what level is larger, old level or new level brought by the new origin player
                             }
@@ -229,7 +229,7 @@ public Action:CalcAura(Handle:t)
                                 //|| (AuraTrackOtherTeam[aura]&&teamclient!=teamtarget)
 
                             {
-                                //AuraOwner[client][aura]=target;
+                                AuraOwner[client][aura]=target;
                                 HasAura[client][aura]++;
                                 HasAuraLevel[client][aura]=IntMax(HasAuraLevel[client][aura],AuraOriginLevel[target][aura]);
                             }
@@ -257,7 +257,7 @@ public Action:CalcAura(Handle:t)
                 Call_PushCell(aura);
                 Call_PushCell(HasAura[client][aura]);
                 Call_PushCell(HasAuraLevel[client][aura]);
-                //Call_PushCell(AuraOwner[client][aura]);
+                Call_PushCell(AuraOwner[client][aura]);
                 Call_Finish(dummy);
             }
         }
