@@ -17,6 +17,11 @@ Here are other changes:
 * Added Race Dependencies
 
 
+Future plans?
+
+We prefer to compile for specific games.   As of right now, War3Source is compiled for all the games it supports.   We plan to go thru and compile only the code for the game it will be used for.   We feel the extra weight of the unnecessary code could cause issues in the future, if it has not already done so.   Do you think you really need code for CSGO in a TF2 server?  Or code for L4D2 in a CSGO server?   War3Source said it doesn't matter.   What do you think?
+
+
 # War3Source (W3S) #
 
 War3Source  brings the Warcraft 3 leveling style and races into the game.
