@@ -10,6 +10,7 @@
 #include <tf2>
 #include <tf2_stocks>
 #include <cstrike>
+#include "W3SIncs/War3Source_0_SwitchGame"
 
 #include "W3SIncs/War3Source_Constants"
 #include "W3SIncs/War3Source_Engine_Download_Control"
