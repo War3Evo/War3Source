@@ -13,7 +13,7 @@ public Plugin:myinfo =
 // Colors
 #define COLOR_DEFAULT 0x01
 #define COLOR_LIGHTGREEN 0x03
-#define COLOR_GREEN 0x04 // DOD = Red //kinda already defiend in war3 interface
+//#define COLOR_GREEN 0x04 // DOD = Red //kinda already defiend in war3 interface
 
 //Skills Settings
  
