@@ -285,9 +285,9 @@ public OnW3PlayerAuraStateChanged(client, tAuraID, bool:inAura, level, AuraOwner
                 
                     War3_SetBuff(client, buff, race, value, AuraOwner);
                     //PrintToServer("[AURA] Giving buff %i with a magnitude of %f to player \"{client %i}\" (Aura from skill \"{skill %i}\" of race \"{race %i}\" at level %i)", buff, value, client, iSkill, race, level);
-            }
-            else
-            {
+                }
+                else
+                {
                     War3_NotifyPlayerImmuneFromSkill(AuraOwner, client, GetArrayCell(g_hBuffSkill, i));
                 }
             }
