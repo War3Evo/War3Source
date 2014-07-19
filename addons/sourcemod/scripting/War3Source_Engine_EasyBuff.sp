@@ -322,7 +322,8 @@ ResetItems(client, item)
         {
             new W3Buff:buff = W3Buff:GetArrayCell(g_hItemBuffs, i);
             //DP("[ITEM] Resetting the buff %i from item \"{item %i}\" on \"{client %i}\"", buff, item, client);
-            War3_NotifyPlayerItemActivated(client,item,false);
+            // Creating Doubles in chat:
+            //War3_NotifyPlayerItemActivated(client,item,false);
             W3ResetBuffItem(client, buff, item);
         }
     }
@@ -338,7 +339,8 @@ InitItems(client, item)
             new W3Buff:buff = W3Buff:GetArrayCell(g_hItemBuffs, i);
             
             //DP("[ITEM] Giving buff %i with a magnitude of %f to player \"{client %i}\" (Owning item \"{item %i}\")", buff, value, client, item);
-            War3_NotifyPlayerItemActivated(client,item,true);
+            // Creating Doubles in chat:
+            //War3_NotifyPlayerItemActivated(client,item,true);
             War3_SetBuffItem(client, buff, item, value);
         }
     }
