@@ -44,7 +44,7 @@ new Float:JudgementCooldownTime=10.0;
 new Float:JudgementRange=200.0;
 
 new Float:PresenseAmount[5]={0.0,0.5,1.0,1.5,2.0}; 
-new Float:PresenceRange=400.0;
+new Float:PresenceRange[5]={0.0,400.0,400.0,400.0,400.0}; 
 
 new InhumanAmount[5]={0,5,10,15,20};
 new Float:InhumanRange=400.0;
@@ -83,7 +83,7 @@ public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
         War3_CreateRaceEnd(thisRaceID);
 
         War3_AddAuraSkillBuff(thisRaceID, SKILL_PRESENCE, fHPDecay, PresenseAmount, 
-                              "witheringpresense", PresenceRange, 
+                              "witheringpresense", PresenceRange, 5,
                               true);
         
     }

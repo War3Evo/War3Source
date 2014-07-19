@@ -23,7 +23,7 @@ new Float:GlaiveRadius[5] = {0.0,250.0,300.0,350.0,400.0};
 new Float:GlaiveChance = 0.22;
 new GlaiveDamage[5] = {0,4,6,8,12};
 
-new Float:BlessingRadius = 280.0;
+new Float:BlessingRadius[5] = {0.0,160.0,200.0,240.0,280.0};
 new BlessingIncrease[5] = {0,1,2,2,3};
 
 new Float:EclipseRadius=500.0;
@@ -35,6 +35,24 @@ new XBeamSprite,CoreSprite,MoonSprite,HaloSprite;
 //new BlueSprite;
 new Handle:ultCooldownCvar = INVALID_HANDLE;
 new AuraID;
+
+
+new bool:RaceDisabled=true;
+public OnWar3RaceEnabled(newrace)
+{
+    if(newrace==thisRaceID)
+    {
+        RaceDisabled=false;
+    }
+}
+public OnWar3RaceDisabled(oldrace)
+{
+    if(oldrace==thisRaceID)
+    {
+        RaceDisabled=true;
+    }
+}
+
 
 public OnPluginStart()
 {
@@ -99,24 +117,68 @@ public OnWar3LoadRaceOrItemOrdered2(num,reloadrace_id,String:shortname[])
         SKILL_AURA=War3_AddRaceSkillT(thisRaceID,"LunarBlessing",false,4);
         ULT=War3_AddRaceSkillT(thisRaceID,"Eclipse",true,4);
         War3_CreateRaceEnd(thisRaceID);
-        
-        War3_AddAuraSkillBuff(thisRaceID, SKILL_AURA, iDamageBonus, BlessingIncrease, 
-                              "luna_blessing", BlessingRadius, 
-                              true);
-        
-        // since we cant look up aura ids by shortname right now, do it this way ;)
-        AuraID = W3RegisterAura("luna_blessing", BlessingRadius);
+        AuraID=W3RegisterChangingDistanceAura("luna_blessing");
+    }
+}
+
+//Purpose: Applies/Removes the Aura from player that actually changed from/to this race..
+public OnRaceChanged(client,oldrace,newrace)
+{
+    if(RaceDisabled)
+        return;
+
+    if(newrace==thisRaceID) {
+        new level=War3_GetSkillLevel(client,thisRaceID,SKILL_AURA);
+        if(level>0){
+            W3SetPlayerAura(AuraID,client,BlessingRadius[level],level);
+        }
+        else
+        {
+            W3RemovePlayerAura(AuraID,client);
+        }
+    }
+    if(oldrace==thisRaceID) {
+        War3_SetBuff(client,bImmunitySkills,thisRaceID,false);
+        W3RemovePlayerAura(AuraID,client);
+    }
+}
+
+public OnSkillLevelChanged(client,race,skill,newskilllevel)
+{
+    if(RaceDisabled)
+        return;
+
+    //The Skill level changed, probably lunar blessing - check for that..
+    if(race==thisRaceID && War3_GetRace(client)==thisRaceID)
+    {
+        if(skill==SKILL_AURA)
+        {
+            //Updates Lunar Blessing Aura Info...
+            if(newskilllevel>0)
+            {
+                W3SetPlayerAura(AuraID,client,BlessingRadius[newskilllevel],newskilllevel);
+            }
+            else
+            {
+                W3RemovePlayerAura(AuraID,client);
+            }
+        }
     }
 }
 
 public OnW3PlayerAuraStateChanged(client,aura,bool:inAura,level)
 {
+    if(RaceDisabled)
+        return;
+
     if(aura == AuraID)
     {
         if(War3_GetGame() != Game_CSGO) 
         {
             if(inAura == true && ValidPlayer(client, true)) 
             {
+                //Yes, to let mod our damage done
+                War3_SetBuff(client,iDamageBonus,thisRaceID,inAura?BlessingIncrease[level]:0);
                 decl Float:client_pos[3];
                 GetClientAbsOrigin(client, client_pos);
                 TE_SetupGlowSprite(client_pos, LightModel, 2.0, 1.0, 255);
