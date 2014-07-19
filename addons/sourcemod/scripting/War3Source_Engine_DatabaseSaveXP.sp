@@ -198,7 +198,7 @@ public Action:DoAutosave(Handle:timer, any:data)
 
 War3Source_SavePlayerData(client, race)
 {
-    if(hDB && !IsFakeClient(client) && W3IsPlayerXPLoaded(client))
+    if(hDB && W3SaveEnabled() && !IsFakeClient(client) && W3IsPlayerXPLoaded(client))
     {
         //only save their current race
         War3_SavePlayerRace(client, race);
