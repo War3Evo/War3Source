@@ -78,11 +78,20 @@ native War3_SetBuff(client,W3Buff:buffindex,raceid,any:value,buffowner=-1);
  */
 native War3_SetBuffItem2(client,W3Buff:buffindex,itemid,any:value,buffowner=-1);
 
-/*
+/**
  * set a buff, identified as coming from a item
- * 
+ * value can be int float bool, but has to be consistant, agreed upon by war3 main plugin
+ *
+ * @param client						client index
+ * @param buffindex						W3Buff property found in constants.inc
+ * @param itemid						item id
+ * @param value							value depends on W3Buff property
+ * @param buffowner						owner whom applied the buff to the client
+ * @return 								no return
+ *
  */
-native War3_SetBuffItem(client,W3Buff:buffindex,itemid,any:value);
+native War3_SetBuffItem(client,W3Buff:buffindex,itemid,any:value,buffowner=-1);
+
 native W3BuffCustomOFFSET(); //get offset for custom buff modifier indexes. use War3_SetBuffItem(client,buffindex,W3BuffCustomOFFSET() + NUMBER,value) (YES, ITEM)
 
 ///RESETS a particular buff from your race on this client
