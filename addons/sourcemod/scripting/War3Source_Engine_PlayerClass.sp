@@ -557,8 +557,9 @@ public NWar3_SpawnPlayer(Handle:plugin,numParams)
             {
                 TF2_RespawnPlayer(client);
             }
-            default:
-                return ThrowNativeError(SP_ERROR_NATIVE,"Game does not support respawning");
+            // Please stop filling up my error log!
+            //default:
+              //  return ThrowNativeError(SP_ERROR_NATIVE,"Game does not support respawning");
         }
     }
     return 0;
