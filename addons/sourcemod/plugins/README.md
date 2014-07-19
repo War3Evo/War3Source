@@ -2,7 +2,7 @@
 
 Game Modes that have been tested:  TF2 and FoF
 
-Pick a game and add it to your plugins directory of your server.
+Pick a game and add it to your plugins directory of your server.   You will still need to download translations and extensions in order for this game to work, so do not forget those!
 
 These are precompiled with the most stable version and ready to use.
 
