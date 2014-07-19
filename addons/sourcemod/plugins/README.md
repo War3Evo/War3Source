@@ -6,7 +6,10 @@ Pick a game and add it to your plugins directory of your server.   You will stil
 
 These are precompiled with the most stable version and ready to use.
 
-War3Source is naturally compatible with CSS, CSGO, and L4D2, but until we confirm these, we have not made precompiles for them.
+War3Source is naturally compatible with CSS, CSGO, and L4D2.   We are unable to confirm these.
+
+It is strongly suggested that you precompile your own copy  to the latest version, instead of using precompiled.
+
 
 # Accepting Donations #
 
