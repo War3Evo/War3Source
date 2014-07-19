@@ -68,7 +68,7 @@ public NW3BuffCustomOFFSET(Handle:plugin,numParams)
 }
 public Native_War3_SetBuff(Handle:plugin,numParams)
 {
-  if(numParams==4) //client,race,buffindex,value
+  if(numParams==5) //client,race,buffindex,value
   {
     new client=GetNativeCell(1);
     new W3Buff:buffindex=GetNativeCell(2);
@@ -85,7 +85,7 @@ public Native_War3_SetBuff(Handle:plugin,numParams)
 }
 public Native_War3_SetBuffItem(Handle:plugin,numParams) //buff is from an item
 {
-  if(numParams==4) //client,race,buffindex,value
+  if(numParams==5) //client,race,buffindex,value
   {
     new client=GetNativeCell(1);
     new W3Buff:buffindex=GetNativeCell(2);
@@ -103,7 +103,7 @@ public Native_War3_SetBuffItem(Handle:plugin,numParams) //buff is from an item
 }
 public Native_War3_SetBuffItem2(Handle:plugin,numParams) //buff is from an item
 {
-  if(numParams==4) //client,race,buffindex,value
+  if(numParams==5) //client,race,buffindex,value
   {
     new client=GetNativeCell(1);
     new W3Buff:buffindex=GetNativeCell(2);
