@@ -267,7 +267,8 @@ War3_TriedToBuyItem(client, item, bool:reshowmenu=true)
         if(bCanBuy) 
         {
             War3_SubstractCurrency(client, cost);
-            War3_ChatMessage(client, "%T", "You have successfully purchased {itemname}", GetTrans(), itemname);
+            // Items give the player "Item Activated" Notifications, they know they purchased it!
+            //War3_ChatMessage(client, "%T", "You have successfully purchased {itemname}", GetTrans(), itemname);
 
             if (IsPlayerAlive(client))
             {
@@ -339,7 +340,7 @@ public OnSelectExceededMaxItemsMenuBuy(Handle:menu,MenuAction:action,client,sele
                     W3CreateEvent(DoForwardClientLostItem,client); //old item
 
                     War3_SubstractCurrency(client, cost);
-                    War3_ChatMessage(client,"%T","You have successfully purchased {itemname}",GetTrans(),itemname);
+                    //War3_ChatMessage(client,"%T","You have successfully purchased {itemname}",GetTrans(),itemname);
 
                     W3SetVar(TheItemBoughtOrLost,WantsToBuy[client]);
                     W3CreateEvent(DoForwardClientBoughtItem,client); //old item
