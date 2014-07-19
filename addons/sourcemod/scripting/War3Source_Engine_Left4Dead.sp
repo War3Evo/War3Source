@@ -1,6 +1,6 @@
 #include <sourcemod>
 #include "W3SIncs/War3Source_Interface"
-
+#assert GGAMETYPE == GGAME_L4D
 #include <sdkhooks>
 
 public Plugin:myinfo = 

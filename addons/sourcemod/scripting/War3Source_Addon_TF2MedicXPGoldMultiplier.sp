@@ -1,6 +1,7 @@
 #pragma semicolon 1    ///WE RECOMMEND THE SEMICOLON
 
-#include "W3SIncs/War3Source_Interface"  
+#include "W3SIncs/War3Source_Interface"
+#assert GGAMETYPE == GGAME_TF
 #include <tf2_stocks>
 
 public Plugin:myinfo = 
