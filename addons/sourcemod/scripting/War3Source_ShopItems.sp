@@ -16,7 +16,9 @@ enum {
     ITEM_ANKH = 0,
     ITEM_BOOTS,
     ITEM_CLAW,
+#if GGAMETYPE != GGAME_FOF
     ITEM_CLOAK,
+#endif
     ITEM_MASK,
     ITEM_NECKLACE,
     ITEM_FROST,
@@ -79,7 +81,9 @@ public OnPluginStart()
     hMoleDeathmatchAllowedCvar = CreateConVar("war3_shop_mole_dm", "0", "Set this to 1 if server is deathmatch");
     hRegenHPCvar = CreateConVar("war3_shop_ring_hp", GameTF() ? "4" : "2", "How much HP is regenerated per second");
 
+#if GGAMETYPE != GGAME_FOF
     CreateTimer(0.1, PointOneSecondLoop, _, TIMER_REPEAT);
+#endif
     CreateTimer(10.0, GrenadeLoop, _, TIMER_REPEAT);
 
     for(new i=1; i <= MaxClients; i++)
@@ -109,7 +113,9 @@ public OnWar3LoadRaceOrItemOrdered(num)
 
         iShopitem[ITEM_BOOTS] = War3_CreateShopItemT("boot", 3);
         iShopitem[ITEM_CLAW] = War3_CreateShopItemT("claw", 3);
+#if GGAMETYPE != GGAME_FOF
         iShopitem[ITEM_CLOAK] = War3_CreateShopItemT("cloak", 2);
+#endif
         iShopitem[ITEM_MASK] = War3_CreateShopItemT("mask", 3);
         iShopitem[ITEM_NECKLACE] = War3_CreateShopItemT("lace", 2);
         iShopitem[ITEM_FROST] = War3_CreateShopItemT("orb", 3);
@@ -147,7 +153,7 @@ public OnMapStart()
         PrecacheModel("models/player/tm_leet_variantb.mdl");
     }
 }
-
+#if GGAMETYPE != GGAME_FOF
 doCloak()
 {
     for(new x=1; x <= MaxClients; x++)
@@ -164,7 +170,7 @@ doCloak()
         }
     }
 }
-
+#endif
 public OnWar3EventDeath(client)
 {
     if (ValidPlayer(client))
@@ -389,10 +395,12 @@ public OnItemLost(client, item)
             SetEntityHealth(client, War3_GetMaxHP(client));
         }
     }
+#if GGAMETYPE != GGAME_FOF
     else if(item == iShopitem[ITEM_CLOAK])
     {
         War3_SetBuffItem(client, fInvisibilityItem, iShopitem[ITEM_CLOAK], 1.0);
     }
+#endif
 }
 
 //=============================================================================
@@ -566,7 +574,7 @@ public Action:DoMole(Handle:timer, any:client)
         War3_SetOwnsItem(client, iShopitem[ITEM_MOLE], false);
     }
 }
-
+#if GGAMETYPE != GGAME_FOF
 public Action:PointOneSecondLoop(Handle:timer, any:data)
 {
     if(bItemsLoaded)
@@ -574,6 +582,7 @@ public Action:PointOneSecondLoop(Handle:timer, any:data)
         doCloak();
     }
 }
+#endif
 
 //gloves giving nades
 public Action:GrenadeLoop(Handle:timer, any:data)
