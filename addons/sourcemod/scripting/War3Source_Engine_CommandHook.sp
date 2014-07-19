@@ -139,7 +139,7 @@ public Action:War3Source_SayCommand(client,args)
     War3_ShowXP(client);
     return returnblocking;
   }
-  else if(CommandCheckStartsWith(arg1,"changerace")||CommandCheckStartsWith(arg1,"cr ")||CommandCheck(arg1,"cr"))
+  else if(CommandCheckStartsWith(arg1,"changerace")||CommandCheckStartsWith(arg1,"changejob")||CommandCheckStartsWith(arg1,"cr ")||CommandCheckStartsWith(arg1,"cj ")||CommandCheck(arg1,"cr"))
   {
 
     //index 2 is right after the changerace word
