@@ -1,6 +1,6 @@
 #include <sourcemod>
 #include "W3SIncs/War3Source_Interface"
-#assert GGAMETYPE == GGAME_TF
+#assert GGAMETYPE == GGAME_TF2
 
 public Plugin:myinfo = 
 {
