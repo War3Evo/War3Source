@@ -15,7 +15,7 @@
 #include "W3SIncs/War3Source_Constants"
 #include "W3SIncs/War3Source_Engine_Download_Control"
 #include "W3SIncs/War3Source_Bots"
-#include "W3SIncs/colors"
+#include "W3SIncs/morecolors"
 #include "W3SIncs/War3Source_Aura"
 #include "W3SIncs/War3Source_Wards"
 #include "W3SIncs/War3Source_Races"
@@ -953,7 +953,7 @@ stock War3_ChatMessage(client, const String:szMessage[], any:...)
         SetGlobalTransTarget(i);
         VFormat(szBuffer, sizeof(szBuffer), szMessage, 3);
         Format(szBuffer, sizeof(szBuffer), "%T%s", "[War3Source]", i, szBuffer);
-        CPrintToChat(i, szBuffer);
+        CPrintToChat2(i, szBuffer);
       }
     }
   }
@@ -963,7 +963,7 @@ stock War3_ChatMessage(client, const String:szMessage[], any:...)
     SetGlobalTransTarget(client);
     VFormat(szBuffer, sizeof(szBuffer), szMessage, 3);
     Format(szBuffer, sizeof(szBuffer), "%T%s", "[War3Source]", client, szBuffer);
-    CPrintToChat(client, szBuffer);
+    CPrintToChat2(client, szBuffer);
   }
 }
 
@@ -994,7 +994,7 @@ stock War3_ChatMessageEx(client, author, const String:szMessage[], any:...)
         SetGlobalTransTarget(i);
         VFormat(szBuffer, sizeof(szBuffer), szMessage, 4);
         Format(szBuffer, sizeof(szBuffer), "%T%s", "[War3Source]", i, szBuffer);
-        CPrintToChatEx(i, author, szBuffer);
+        CPrintToChat2Ex(i, author, szBuffer);
       }
     }
   }
@@ -1004,7 +1004,7 @@ stock War3_ChatMessageEx(client, author, const String:szMessage[], any:...)
     SetGlobalTransTarget(client);
     VFormat(szBuffer, sizeof(szBuffer), szMessage, 4);
     Format(szBuffer, sizeof(szBuffer), "%T%s", "[War3Source]", client, szBuffer);
-    CPrintToChatEx(client, author, szBuffer);
+    CPrintToChat2Ex(client, author, szBuffer);
   }
 }
 
