@@ -1,4 +1,4 @@
-# WARNING: Not Compatible with War3Source #
+# WARNING: Not Compatible with War3Source Races #
 
 This version is a War3Evo Public version meant to help War3Evo Future developers create races for War3Evo.
 
