@@ -98,11 +98,14 @@ forward APLRes:AskPluginLoad2Custom(Handle:plugin,bool:late,String:error[],err_m
  */
 forward LoadCheck();
 
-
-//Called for each category if the user opens the catted cr menu
+/**********************
+ * Called for each category if the user opens the catted cr menu
+ */
 forward Action:OnW3DrawCategory(client,categoryindex,String:categoryname[]);
 
-//Warcraft required executions, does common tasks, such as loading translations.
+/**********************
+ * Warcraft required executions, does common tasks, such as loading translations.
+ */
 forward War3InterfaceExec();
 public War3InterfaceExec() {
   LoadTranslations("w3s._common.phrases.txt");
@@ -122,6 +125,9 @@ public War3InterfaceExec() {
  * Natives and misc stocks
  */
 
+/**********************
+ * SetSafeMenuTitle(Handle:menu, const String:fmt[], any:...)
+ */
 stock SetSafeMenuTitle(Handle:menu, const String:fmt[], any:...)
 {
   decl String:menuTitle[4096];
@@ -137,48 +143,76 @@ stock SetSafeMenuTitle(Handle:menu, const String:fmt[], any:...)
   SetMenuTitle(menu, menuTitle);
 }
 
-native W3GetW3Version(String:retstr[],maxlen);//str
-native W3GetW3Revision();//int
-native W3GetStatsVersion();//int
-//returns the TRIE that contains stats key value pairs, for GAME and SERVER stats
+/**********************
+ * @return str 
+ */
+native W3GetW3Version(String:retstr[],maxlen);
+
+/**********************
+ * @return int
+ */
+native W3GetW3Revision();
+
+/**********************
+ * @return int
+ */
+native W3GetStatsVersion();
+
+/**********************
+ * returns the TRIE that contains stats key value pairs, for GAME and SERVER stats
+ */
 native Handle:W3GetStatsKDRTrie();
 
-//Socket functions
-//GET or normal
-//URL can be full url with http:// or just path without leading slash
+/**********************
+ * Socket functions
+ * GET or normal
+ * URL can be full url with http:// or just path without leading slash
+ */
 native W3Socket(String:url[],Function:callback);
-//POST
-//URL can be full url with http:// or just path without leading slash
+
+/**********************
+ * POST
+ * URL can be full url with http:// or just path without leading slash
+ */
 native W3Socket2(String:url[],String:postdata[],Function:callback);
 
-//forces weapon drop, given a weapon entity
+/**********************
+ * forces weapon drop, given a weapon entity
+ */
 native W3DropWeapon(client, weaponent);
 
 /**
  * Checks if we are in the freeze time. Certain games support this, like CS.
  * @return True if so, false if not.
- *  
  */
+ 
 #pragma deprecated
+/**
+ * #pragma deprecated
+ */
 native bool:War3_InFreezeTime();
 
 
-//set / retrieves specified values from the main war3 plugin, see W3Var enum in constants.inc, only those values are allowed
-//this mostly used for accessing a variable without creating a special native just for it
-//this returns any:, you should tag it if return value is not suppose to be normal integer. like Float:W3GetVar( or Handle:W3GetVar(
-//most are temporary variables and this function should be called immidiately in the right functions
-//examples W3GetVar(OldRace)   W3GetVar(DeathRace)
-//See W3Var enum in constants to get a list
-//Do not get/set vars arbitrarily unless you know what you are doing
+/**********************
+ * set / retrieves specified values from the main war3 plugin, see W3Var enum in constants.inc, only those values are allowed
+ * this mostly used for accessing a variable without creating a special native just for it
+ * this returns any:, you should tag it if return value is not suppose to be normal integer. like Float:W3GetVar( or Handle:W3GetVar(
+ * most are temporary variables and this function should be called immidiately in the right functions
+ * examples W3GetVar(OldRace)   W3GetVar(DeathRace)
+ * See W3Var enum in constants to get a list
+ * Do not get/set vars arbitrarily unless you know what you are doing
+ */
 native any:W3GetVar(W3Var:variabletoretrieve);
 
-//set / retrieves specified values from the main war3 plugin, see W3Var enum in constants.inc, only those values are allowed
-//this mostly used for accessing a variable without creating a special native just for it
-//this returns any:, you should tag it if return value is not suppose to be normal integer. like Float:W3GetVar( or Handle:W3GetVar(
-//most are temporary variables and this function should be called immidiately in the right functions
-//examples W3GetVar(OldRace)   W3GetVar(DeathRace)
-//See W3Var enum in constants to get a list
-//Do not get/set vars arbitrarily unless you know what you are doing
+/**********************
+ * set / retrieves specified values from the main war3 plugin, see W3Var enum in constants.inc, only those values are allowed
+ * this mostly used for accessing a variable without creating a special native just for it
+ * this returns any:, you should tag it if return value is not suppose to be normal integer. like Float:W3GetVar( or Handle:W3GetVar(
+ * most are temporary variables and this function should be called immidiately in the right functions
+ * examples W3GetVar(OldRace)   W3GetVar(DeathRace)
+ * See W3Var enum in constants to get a list
+ * Do not get/set vars arbitrarily unless you know what you are doing
+ */
 native any:W3SetVar(W3Var:variabletoretrieve,any:value);
 
 
@@ -190,7 +224,18 @@ native any:W3SetVar(W3Var:variabletoretrieve,any:value);
  */
 native War3_CreateHelpCommand(String:name[],String:desc[]);
 
+/**********************
+ * @param client: client's index
+ * @param race: client's race id
+ * @return levels spent
+*/
 native W3GetLevelsSpent(client, race);
+
+/**********************
+ * @param client: client's index
+ * @param race: client's race id
+ * @noreturn
+*/
 native W3ClearSkillLevels(client, race);
 
 /**
@@ -205,20 +250,43 @@ native W3ClearSkillLevels(client, race);
  */
 native War3_GetTargetInViewCone(client,Float:max_distance=0.0,bool:include_friendlys=false,Float:cone_angle=23.0,Function:FilterFunction=INVALID_FUNCTION);
 
-//generic immunity filter for ultimate
+/**********************
+ * generic immunity filter for ultimate
+ *
+ * @param client: client's index
+ * @return true / false
+*/
 public bool:UltFilter(client)
 {
   return (!W3HasImmunity(client,Immunity_Ultimates));
 }
-//generic immunity filter for skills
+
+/**********************
+ * generic immunity filter for skills
+ *
+ * @param client: client's index
+ * @return true / false
+*/
 public bool:SkillFilter(client)
 {
   return (!W3HasImmunity(client,Immunity_Skills));
 }
 
-///traces from client to target and see if they are in view of each other (Line of Signt - LOS)
+/**********************
+ * traces from client to target and see if they are in view of each other (Line of Signt - LOS)
+ *
+ * @param client: client's index
+ * @param target: target's index
+ * @return int
+*/
 native W3LOS(client, target);
 
+/**********************
+ * @param client: client's index
+ * @param check_alive: checks to see if player is alive
+ * @param alivecheckbyhealth: checks to see if the client is alive by GetClientHealth
+ * @return return: true if the player is Valid, otherwise false if they are not valid.
+*/
 stock bool:ValidPlayer(client,bool:check_alive=false,bool:alivecheckbyhealth=false) {
   if(client>0 && client<=MaxClients && IsClientConnected(client) && IsClientInGame(client))
   {
@@ -234,9 +302,14 @@ stock bool:ValidPlayer(client,bool:check_alive=false,bool:alivecheckbyhealth=fal
   return false;
 }
 
+/**********************
+ * @param raceid: race's index
+ * @return true / false
+*/
 stock bool:ValidRace(raceid_) {
   return bool:(raceid_>0&&raceid_<=War3_GetRacesLoaded());
 }
+
 /**
  * Respawns a dead player.
  * @param client: Client's index.
@@ -282,6 +355,14 @@ stock Handle:War3_NearEntsByName(client,Handle:hEnts,pack_size,Float:distance=15
   }
 }
 
+/**
+ * Detects if a client is near a certain entity.
+ * 
+ * @param client: Client's index.
+ * @param ent_name: Entities name
+ * @param distance: the distance
+ * @return Handle
+*/
 stock Handle:War3_NearEntByName(client,String:ent_name[],Float:distance)
 {
   if(distance<0.0)
@@ -399,9 +480,10 @@ native War3_CachedDeadAmmo(client, game_weapon_id);
  */
 native War3_CachedDeadWeaponName(client,weapon_iterator,String:output_buffer[],output_size);
 
-//LO AND BEHOLD THE COOLDOWN MANAGER, YOUR LIFE SIMPLIFIED!!!
-//we essentially move the cooldown system out of our races into our main plugin
 /**
+ * LO AND BEHOLD THE COOLDOWN MANAGER, YOUR LIFE SIMPLIFIED!!!
+ * we essentially move the cooldown system out of our races into our main plugin
+ * 
  * cooldown manager
  * basically self explainatory parameters, creates a cooldown for a skill (term skill used here is generic for skill/ability/ultimate)
  * printMsgOnExpireByTime prints message to client (if alive and same race) when this skill expires by time (will not print when expired by spawn or death or force reset)
@@ -413,10 +495,18 @@ native War3_CachedDeadWeaponName(client,weapon_iterator,String:output_buffer[],o
  */
 native War3_CooldownMGR(client,Float:cooldownTime,raceid,skillNum, bool:resetOnSpawn=true,bool:printMsgOnExpireByTime=true);
 
-//tells the cooldown manager to create a predefined cooldown time when player spawns with that race. 
-//cooldown is created regardless of resetOnSpawn in War3_CooldownMGR(...) calls
-//only prints expired if client remains that race
-//set this ONCE when u register your skills
+/**
+ * tells the cooldown manager to create a predefined cooldown time when player spawns with that race.
+ * cooldown is created regardless of resetOnSpawn in War3_CooldownMGR(...) calls
+ * only prints expired if client remains that race
+ * set this ONCE when u register your skills
+ * 
+ * @param raceid
+ * @param skillnum
+ * @param cooldownTime
+ * @param printmsgonexpire
+ * @noreturn
+ */
 native W3SkillCooldownOnSpawn(raceid,skillnum,Float:cooldownTime,bool:printmsgonexpire=true);
 
 /**
@@ -449,27 +539,33 @@ native War3_PrintSkillIsNotReady(client, raceid, skillNum);
 //DELAY TRACKER
 //DELAY TRACKER
 
-///registers a tracker and returns an index that you must keep. usually do this for each each player or once if global
-// Register once on plugin start please!
-//returns -1 if tracker is full. LogErrors on Full
-/*
- usage:
-
- register tracker
- create delay
-
- repeat:{
- expired?
- create delay
- }
-
+/**
+ * registers a tracker and returns an index that you must keep. usually do this for each each player or once if global
+ * Register once on plugin start please!
+ * returns -1 if tracker is full. LogErrors on Full
+ * 
+ * usage:
+ * register tracker
+ * create delay
+ * 
+ * repeat:{
+ * expired?
+ * create delay
+ * }
+ *  
  */
 native War3_RegisterDelayTracker();
 
-//create a delay
+/**
+ * create a delay
+ *
+ */
 native War3_TrackDelay(trackerIndex,Float:delay);
 
-//did the delay expire?
+/**
+ * did the delay expire?
+ *
+ */
 native War3_TrackDelayExpired(trackerIndex);
 
 ///PLAYER  TRACE
@@ -478,17 +574,26 @@ native War3_TrackDelayExpired(trackerIndex);
 ///PLAYER  TRACE
 ///PLAYER  TRACE
 
-//get location of where the player is aiming (trace to the end of your crosshair)
+/**
+ * get location of where the player is aiming (trace to the end of your crosshair)
+ *
+ */
 native War3_GetAimEndPoint(client,Float:endpos[3]);
 
-//get location of where the player is aiming (trace to the end of your crosshair) limited by distance
+/**
+ * get location of where the player is aiming (trace to the end of your crosshair) limited by distance
+ *
+ */
 native War3_GetAimTraceMaxLen(client,Float:endpos[3],Float:maxdistance);
 
-//simple weapon restriction:  pass "weapon_knife,weapon_hegrenade" to only allow these weapons, separated by comma. 
-//pass "" to allow all weapons again
-//c4 etc is automatically allowed
-//to override other restrictions, use a higher priority
-//use 1 priorty for ur base race restrictions, USE AT OWN RISK!
+/**
+ * simple weapon restriction:  pass "weapon_knife,weapon_hegrenade" to only allow these weapons, separated by comma.
+ * pass "" to allow all weapons again
+ * c4 etc is automatically allowed
+ * to override other restrictions, use a higher priority
+ * use 1 priorty for ur base race restrictions, USE AT OWN RISK!
+ *
+ */
 native War3_WeaponRestrictTo(client,raceid,String:onlyallowedweaponsnames[],priority=1);
 
 //get weaponlist
