@@ -31,7 +31,7 @@ public OnWar3EventSpawn(client)
             return;
         }
         
-        if(!War3_GetOwnsItem(client, item) && GetClientItemsOwned(client) == 0 )
+        if(!War3_GetOwnsItem(client, item) && GetClientItemsOwned(client) == 0 && W3GetPlayerProp(client,iAutoBuyMaxGoldItem)==1)
         {
             new cost = W3GetItemCost(item);
             if(cost <= War3_GetCurrency(client))
