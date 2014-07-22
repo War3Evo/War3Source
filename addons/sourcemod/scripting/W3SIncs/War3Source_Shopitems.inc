@@ -58,12 +58,21 @@ native War3_GetOwnsItem(client, item);
 native War3_SetOwnsItem(client,item,bool:ownsitem);
 
 /**
- * After a player has died and this command is invoked they will
- * try to buy all their previously owned items again
-
+ * When a player dies, this command record's their shopmenu1 items.
+ * When you use this command, you are telling it to restore their items from death.
+ * It does all the math as far as taking gold or cs money for items restored.
+ * It will let the client know what items are discarded and/or bought.
+ * It will also only buy until the client goes broke.
+ * If the client already owns some items from the list from death, it will not charge them.
+ * It only charges for the items that the client must buy to match the items from death.
+ * It discards items that does not match from the previous death list.
+ * Note: The no cost method still needs work.
  * @param client: Client index
+ * @param payforit: false = no cost, true = charge
+ * @param csmoney: true is cs money, false for gold.
+ * @return The return value will be true if it is successful.
  */
-native War3_RestoreItemsFromDeath(client);
+native War3_RestoreItemsFromDeath(client,bool:payforit=true,bool:csmoney=false);
 
 //=======================================================================
 //                             FORWARDS
