@@ -1,7 +1,13 @@
 /**
  * File: War3Source_Bots.inc
  * Description: Methods regarding bots
- * Author(s): War3Source Team  
+ * Author(s): War3Source Team
+ *
+ * In order to use these natives, you must include this file in your
+ * sourcecode.
+ *
+ * #include "W3SIncs/War3Source_Bots"
+ * 
  */
 
 /**

@@ -1,5 +1,5 @@
 // Release date is based on Month.Day.Year of when it was last changed
-#define RELEASE_DATE "5/10/2014"
+#define RELEASE_DATE "7/22/2014"
 
 /*  This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -116,12 +116,13 @@ And that's the art of the test!
 #include "sdkhooks"
 //#include <profiler>
 #include "W3SIncs/War3Source_Interface"
+#include "W3SIncs/War3Source_Bots"
 
 //THESE are updated less frequently
 //JENKINS overwrites these
 #define BRANCH "undef"
 #define BUILD_NUMBER "undef"
-#define VERSION_NUM "3.0_EVO"
+#define VERSION_NUM "3.1_EVO"
 
 #tryinclude "../../../jenkins.inc"
 // BRANCH and BUILD_NUMBER are set through Jenkins :)
