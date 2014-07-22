@@ -152,6 +152,7 @@ public Action:W3SayAllCommandCheckPost(client,String:WholeString[],String:ChatSt
     new Handle:g_hCVar = FindConVar("war3_version");
     if(g_hCVar!=INVALID_HANDLE)
     {
+      // An Example of Delayed Chat
       GetConVarString(g_hCVar, version, sizeof(version));
       DelayChat=1;
       Format(ChatString, 255, "War3Source Current Version: %s",version);

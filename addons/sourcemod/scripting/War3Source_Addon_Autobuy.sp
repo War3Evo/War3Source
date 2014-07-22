@@ -25,9 +25,31 @@ public OnPluginStart()
     //hEnableAutobuy = CreateConVar("war3_autobuy_enable", "0", "Enable/Disable(1/0) autobuy");
 }
 
+new bool:RenameAutobuy=false;
+
 public OnAllPluginsLoaded()
 {
     Cvar_ChatBlocking = FindConVar("war3_command_blocking");
+    if(LibraryExists("AmmoControl"))
+    {
+        RenameAutobuy=true;
+    }
+}
+
+public OnLibraryAdded(const String:name[])
+{
+    if(StrEqual(name,"AmmoControl"))
+    {
+        RenameAutobuy=true;
+    }
+}
+
+public OnLibraryRemoved(const String:name[])
+{
+    if(StrEqual(name,"AmmoControl"))
+    {
+        RenameAutobuy=false;
+    }
 }
 
 public OnWar3PlayerAuthed(client)
@@ -59,20 +81,54 @@ public Action:W3SayAllCommandCheckPost(client,String:WholeString[],String:ChatSt
     {
         returnblocking = (GetConVarInt(Cvar_ChatBlocking)>0)?Plugin_Handled:Plugin_Continue;
     }
-    
-    if (StrEqual(ChatString,"autobuy",false)||StrEqual(ChatString,"!autobuy",false))
+
+    if(!RenameAutobuy)
     {
-        Autobuy[client]=!Autobuy[client];
-        // An example of DelayChat
-        DelayChat=1;
-        Format(ChatString, 255, " {olive}Autobuy toggled %s", Autobuy[client] ? "on" : "off");
-        return returnblocking;
+        if (StrEqual(ChatString,"autobuy",false)||StrEqual(ChatString,"!autobuy",false))
+        {
+            Autobuy[client]=!Autobuy[client];
+            // An example of DelayChat
+            DelayChat=1;
+            Format(ChatString, 255, " {olive}Autobuy toggled %s", Autobuy[client] ? "on" : "off");
+            return returnblocking;
+        }
+        else if (StrEqual(ChatString,"/autobuy",false))
+        {
+            Autobuy[client]=!Autobuy[client];
+            War3_ChatMessage(client, " {olive}Autobuy toggled %s", Autobuy[client] ? "on" : "off");
+            return Plugin_Handled;
+        }
+        else if (StrEqual(ChatString,"w3autobuy",false)||StrEqual(ChatString,"!w3autobuy",false))
+        {
+            Autobuy[client]=!Autobuy[client];
+            // An example of DelayChat
+            DelayChat=1;
+            Format(ChatString, 255, " {olive}Autobuy toggled %s", Autobuy[client] ? "on" : "off");
+            return returnblocking;
+        }
+        else if (StrEqual(ChatString,"/w3autobuy",false))
+        {
+            Autobuy[client]=!Autobuy[client];
+            War3_ChatMessage(client, " {olive}Autobuy toggled %s", Autobuy[client] ? "on" : "off");
+            return Plugin_Handled;
+        }
     }
-    if (StrEqual(ChatString,"/autobuy",false))
+    else
     {
-        Autobuy[client]=!Autobuy[client];
-        War3_ChatMessage(client, " {olive}Autobuy toggled %s", Autobuy[client] ? "on" : "off");
-        return Plugin_Handled;
+        if (StrEqual(ChatString,"w3autobuy",false)||StrEqual(ChatString,"!w3autobuy",false))
+        {
+            Autobuy[client]=!Autobuy[client];
+            // An example of DelayChat
+            DelayChat=1;
+            Format(ChatString, 255, " {olive}Autobuy toggled %s", Autobuy[client] ? "on" : "off");
+            return returnblocking;
+        }
+        if (StrEqual(ChatString,"/w3autobuy",false))
+        {
+            Autobuy[client]=!Autobuy[client];
+            War3_ChatMessage(client, " {olive}Autobuy toggled %s", Autobuy[client] ? "on" : "off");
+            return Plugin_Handled;
+        }
     }
     return  Plugin_Continue;
 }

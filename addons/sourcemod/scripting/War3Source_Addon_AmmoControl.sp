@@ -44,6 +44,7 @@ public APLRes:AskPluginLoad2Custom(Handle:myself, bool:late, String:error[], err
 {
     CreateNative("War3_GiveWeaponAmmo", Native_GiveWeaponAmmo);
     CreateNative("War3_SetAmmoControl", Native_SetAmmoControl);
+    RegPluginLibrary("AmmoControl");
     return APLRes_Success;
 }
 
