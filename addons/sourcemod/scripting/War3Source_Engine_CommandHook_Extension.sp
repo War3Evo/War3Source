@@ -83,7 +83,7 @@ public bool:CommandCheckStartsWith(String:compare[],String:commandwanted[])
   return false;
 }
 
-public Action:W3SayAllCommandCheckPost(client,String:ChatString[])
+public Action:W3SayAllCommandCheckPost(client,String:WholeString[],String:ChatString[],&DelayChat)
 {
   new top_num;
 
@@ -153,7 +153,8 @@ public Action:W3SayAllCommandCheckPost(client,String:ChatString[])
     if(g_hCVar!=INVALID_HANDLE)
     {
       GetConVarString(g_hCVar, version, sizeof(version));
-      War3_ChatMessage(client,"War3Source Current Version: %s",version);
+      DelayChat=1;
+      Format(ChatString, 255, "War3Source Current Version: %s",version);
     }
     return returnblocking;
   }

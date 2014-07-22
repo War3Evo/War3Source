@@ -16,8 +16,8 @@ public OnPluginStart()
 {
   RegConsoleCmd("say",War3Source_SayCommand);
   RegConsoleCmd("say_team",War3Source_TeamSayCommand);
-  RegConsoleCmd("say",War3Source_SayAllCommand);
-  RegConsoleCmd("say_team",War3Source_SayAllCommand);
+  //RegConsoleCmd("say",War3Source_SayAllCommand);
+  //RegConsoleCmd("say_team",War3Source_SayAllCommand);
   RegConsoleCmd("+ultimate",War3Source_UltimateCommand);
   RegConsoleCmd("-ultimate",War3Source_UltimateCommand);
   RegConsoleCmd("+ability",War3Source_NoNumAbilityCommand);
@@ -37,8 +37,6 @@ public OnPluginStart()
   RegConsoleCmd("ability3",War3Source_OldWCSCommand);
   RegConsoleCmd("ability4",War3Source_OldWCSCommand);
   RegConsoleCmd("ultimate",War3Source_OldWCSCommand);
-
-  RegConsoleCmd("shopmenu",War3Source_CmdShopmenu);
 }
 
 new Handle:g_hOnW3SayCommandCheckPre;
@@ -55,72 +53,104 @@ public bool:InitNativesForwards()
   g_OnUltimateCommandHandle=CreateGlobalForward("OnUltimateCommand",ET_Ignore,Param_Cell,Param_Cell,Param_Cell,Param_Cell);
   g_OnAbilityCommandHandle=CreateGlobalForward("OnAbilityCommand",ET_Ignore,Param_Cell,Param_Cell,Param_Cell);
 
-  g_hOnW3SayCommandCheckPre       = CreateGlobalForward("W3SayCommandCheckPre", ET_Hook, Param_Cell, Param_Array);
-  g_hOnW3SayCommandCheckPost        = CreateGlobalForward("W3SayCommandCheckPost", ET_Hook, Param_Cell, Param_Array);
+  g_hOnW3SayCommandCheckPre       = CreateGlobalForward("W3SayCommandCheckPre", ET_Hook, Param_Cell, Param_String, Param_String);
+  g_hOnW3SayCommandCheckPost        = CreateGlobalForward("W3SayCommandCheckPost", ET_Hook, Param_Cell, Param_String, Param_String);
 
-  g_hOnW3SayTeamCommandCheckPre       = CreateGlobalForward("W3SayTeamCommandCheckPre", ET_Hook, Param_Cell, Param_Array);
-  g_hOnW3SayTeamCommandCheckPost        = CreateGlobalForward("W3SayTeamCommandCheckPost", ET_Hook, Param_Cell, Param_Array);
+  g_hOnW3SayTeamCommandCheckPre       = CreateGlobalForward("W3SayTeamCommandCheckPre", ET_Hook, Param_Cell, Param_String, Param_String);
+  g_hOnW3SayTeamCommandCheckPost        = CreateGlobalForward("W3SayTeamCommandCheckPost", ET_Hook, Param_Cell, Param_String, Param_String);
 
-  g_hOnW3SayAllCommandCheckPre       = CreateGlobalForward("W3SayAllCommandCheckPre", ET_Hook, Param_Cell, Param_Array);
-  g_hOnW3SayAllCommandCheckPost        = CreateGlobalForward("W3SayAllCommandCheckPost", ET_Hook, Param_Cell, Param_Array);
+  g_hOnW3SayAllCommandCheckPre       = CreateGlobalForward("W3SayAllCommandCheckPre", ET_Hook, Param_Cell, Param_String, Param_String);
+  g_hOnW3SayAllCommandCheckPost        = CreateGlobalForward("W3SayAllCommandCheckPost", ET_Hook, Param_Cell, Param_String, Param_String, Param_CellByRef);
 
   return true;
 }
 
-public Action:War3Source_CmdShopmenu(client,args)
+public Action:DelayChatMessageTimer(Handle:timer, Handle:datapack)
 {
-  W3CreateEvent(DoShowShopMenu,client);
-  return Plugin_Handled;
+  ResetPack(datapack);
+  new client = GetClientOfUserId(ReadPackCell(datapack));
+  new String:sBuffer[256];
+  ReadPackString(datapack, sBuffer, sizeof(sBuffer));
+  if(ValidPlayer(client))
+  {
+    War3_ChatMessage(client,sBuffer);
+  }
 }
 
-public Action:War3Source_SayAllCommand(client,args)
+public bool:War3Source_SayAllCommand(client,String:WholeMsg[256],String:ChatMsg[256])
 {
-  decl String:arg1[256]; //was 70
+  //decl String:arg1[256]; //was 70
   //decl String:msg[256]; //was 70
-  GetCmdArg(1,arg1,sizeof(arg1));
-  TrimString(arg1);
+  //GetCmdArg(1,arg1,sizeof(arg1));
+  //TrimString(arg1);
   //GetCmdArgString(msg, sizeof(msg));
   //StripQuotes(msg);
 
   // remove color tags that a player could type in to
   // add color to your chat (bug fixed)
-  CRemoveTag2(arg1, sizeof(arg1));
+  //CRemoveTag2(arg1, sizeof(arg1));
 
   new Action:returnVal = Plugin_Continue;
   Call_StartForward(g_hOnW3SayAllCommandCheckPre);
   Call_PushCell(client);
   // copyback allows changing of client text on pre
-  Call_PushArrayEx(arg1,sizeof(arg1),SM_PARAM_COPYBACK);
+  Call_PushStringEx(WholeMsg,sizeof(WholeMsg),SM_PARAM_STRING_COPY,SM_PARAM_COPYBACK);
+  Call_PushStringEx(ChatMsg,sizeof(ChatMsg),SM_PARAM_STRING_COPY,SM_PARAM_COPYBACK);
   Call_Finish(_:returnVal);
   if(returnVal != Plugin_Continue)
   {
-    return Plugin_Handled;
+    return true;
   }
 
+  // -1 no, 0 WholeMsg, 1 ChatMsg
+  new DelayMsg=-1;
   returnVal = Plugin_Continue;
   Call_StartForward(g_hOnW3SayAllCommandCheckPost);
   Call_PushCell(client);
-  Call_PushArray(arg1,sizeof(arg1));
+  //Call_PushStringEx(String:value[], length, szflags, cpflags);
+  Call_PushStringEx(WholeMsg,sizeof(WholeMsg),SM_PARAM_STRING_COPY,SM_PARAM_COPYBACK);
+  Call_PushStringEx(ChatMsg,sizeof(ChatMsg),SM_PARAM_STRING_COPY,SM_PARAM_COPYBACK);
+  Call_PushCellRef(DelayMsg); 
   // May want to copy back in the future?
   // for now, no need
   //Call_PushArrayEx(arg1,sizeof(arg1),SM_PARAM_COPYBACK);
   Call_Finish(_:returnVal);
-  if(returnVal != Plugin_Continue)
+
+  if(DelayMsg>-1)
   {
-    return Plugin_Handled;
+    if(DelayMsg==0)
+    {
+      new Handle:pack;
+      CreateDataTimer(1.0,DelayChatMessageTimer,pack);
+      WritePackCell(pack, GetClientUserId(client));
+      WritePackString(pack, WholeMsg);
+    }
+    else
+    {
+      new Handle:pack;
+      CreateDataTimer(1.0,DelayChatMessageTimer,pack);
+      WritePackCell(pack, GetClientUserId(client));
+      WritePackString(pack, ChatMsg);
+    }
   }
   
-  return Plugin_Continue;
+  if(returnVal != Plugin_Continue)
+  {
+    return true;
+  }
+  
+  return false;
 }
 
 public Action:War3Source_TeamSayCommand(client,args)
 {
   decl String:arg1[256]; //was 70
-  //decl String:msg[256]; //was 70
+  decl String:msg[256]; //was 70
   GetCmdArg(1,arg1,sizeof(arg1));
   TrimString(arg1);
-  //GetCmdArgString(msg, sizeof(msg));
-  //StripQuotes(msg);
+  GetCmdArgString(msg, sizeof(msg));
+  StripQuotes(msg);
+  TrimString(msg);
 
   // remove color tags that a player could type in to
   // add color to your chat (bug fixed)
@@ -130,7 +160,8 @@ public Action:War3Source_TeamSayCommand(client,args)
   Call_StartForward(g_hOnW3SayTeamCommandCheckPre);
   Call_PushCell(client);
   // copyback allows changing of client text on pre
-  Call_PushArrayEx(arg1,sizeof(arg1),SM_PARAM_COPYBACK);
+  Call_PushStringEx(msg,sizeof(msg),SM_PARAM_STRING_COPY,SM_PARAM_COPYBACK);
+  Call_PushStringEx(arg1,sizeof(arg1),SM_PARAM_STRING_COPY,SM_PARAM_COPYBACK);
   Call_Finish(_:returnVal);
   if(returnVal != Plugin_Continue)
   {
@@ -140,7 +171,8 @@ public Action:War3Source_TeamSayCommand(client,args)
   returnVal = Plugin_Continue;
   Call_StartForward(g_hOnW3SayTeamCommandCheckPost);
   Call_PushCell(client);
-  Call_PushArray(arg1,sizeof(arg1));
+  Call_PushString(msg);
+  Call_PushString(arg1);
   // May want to copy back in the future?
   // for now, no need
   //Call_PushArrayEx(arg1,sizeof(arg1),SM_PARAM_COPYBACK);
@@ -149,18 +181,24 @@ public Action:War3Source_TeamSayCommand(client,args)
   {
     return Plugin_Handled;
   }
-  
+
+  if(War3Source_SayAllCommand(client,msg,arg1))
+  {
+    return Plugin_Handled;
+  }
+
   return Plugin_Continue;
 }
 
 public Action:War3Source_SayCommand(client,args)
 {
   decl String:arg1[256]; //was 70
-  //decl String:msg[256]; //was 70
+  decl String:msg[256]; //was 70
   GetCmdArg(1,arg1,sizeof(arg1));
   TrimString(arg1);
-  //GetCmdArgString(msg, sizeof(msg));
-  //StripQuotes(msg);
+  GetCmdArgString(msg, sizeof(msg));
+  StripQuotes(msg);
+  TrimString(msg);
 
   // remove color tags that a player could type in to
   // add color to your chat (bug fixed)
@@ -170,7 +208,8 @@ public Action:War3Source_SayCommand(client,args)
   Call_StartForward(g_hOnW3SayCommandCheckPre);
   Call_PushCell(client);
   // copyback allows changing of client text on pre
-  Call_PushArrayEx(arg1,sizeof(arg1),SM_PARAM_COPYBACK);
+  Call_PushStringEx(msg,sizeof(msg),SM_PARAM_STRING_COPY,SM_PARAM_COPYBACK);
+  Call_PushStringEx(arg1,sizeof(arg1),SM_PARAM_STRING_COPY,SM_PARAM_COPYBACK);
   Call_Finish(_:returnVal);
   if(returnVal != Plugin_Continue)
   {
@@ -180,12 +219,18 @@ public Action:War3Source_SayCommand(client,args)
   returnVal = Plugin_Continue;
   Call_StartForward(g_hOnW3SayCommandCheckPost);
   Call_PushCell(client);
-  Call_PushArray(arg1,sizeof(arg1));
+  Call_PushString(msg);
+  Call_PushString(arg1);
   // May want to copy back in the future?
   // for now, no need
   //Call_PushArrayEx(arg1,sizeof(arg1),SM_PARAM_COPYBACK);
   Call_Finish(_:returnVal);
   if(returnVal != Plugin_Continue)
+  {
+    return Plugin_Handled;
+  }
+
+  if(War3Source_SayAllCommand(client,msg,arg1))
   {
     return Plugin_Handled;
   }
