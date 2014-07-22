@@ -5,6 +5,7 @@
 #include <sdktools_tempents>
 #include <sdktools_tempents_stocks>
 #include "W3SIncs/War3Source_Interface"
+#assert GGAMETYPE == GGAME_TF2
 
 #include <tf2>
 #include <tf2_stocks>
