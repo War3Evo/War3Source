@@ -229,7 +229,22 @@ enum W3PlayerProp
   bool:bStatefulSpawn, //set true if spawn is a non repeated spawn. set to true on join and death, set false after spawn forward is finished.
   
   PlayerDiamonds,//PlayerDiamonds
+
+  iGoldDiamondHud,
+  iBuffChatInfo,
+  iDetailedOnDeathMsgs,
+  iBuffChatInfo2,
+  iSaySounds,
+  iServerAds,
+  iHlstatsx,
+  iAutoBuyMaxGoldItem,
+  iRotateHUD,
+  iChatText,
+  iCombatMessages,
+  iAdminSecurityExtra,
+  iIrcCrossServerChat,
 }
+
 enum W3SkillProp
 {
   bool:ActivateOnEnemy,
