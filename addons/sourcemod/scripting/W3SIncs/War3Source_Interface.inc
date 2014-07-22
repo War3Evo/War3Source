@@ -14,7 +14,6 @@
 
 #include "W3SIncs/War3Source_Constants"
 #include "W3SIncs/War3Source_Engine_Download_Control"
-#include "W3SIncs/War3Source_Bots"
 #include "W3SIncs/morecolors"
 #include "W3SIncs/War3Source_Aura"
 #include "W3SIncs/War3Source_Wards"
@@ -1068,7 +1067,26 @@ stock War3_ChatMessage(client, const String:szMessage[], any:...)
     SetGlobalTransTarget(client);
     VFormat(szBuffer, sizeof(szBuffer), szMessage, 3);
     Format(szBuffer, sizeof(szBuffer), "%T%s", "[War3Source]", client, szBuffer);
-    CPrintToChat2(client, szBuffer);
+
+    // Added this delay because most chat commands tend to be above the test some types instead below it
+    // This will help cause less confusion for new players.
+
+    new Handle:pack;
+    CreateDataTimer(0.5,DelayWar3ChatMessageTimer,pack);
+    WritePackCell(pack, GetClientUserId(client));
+    WritePackString(pack, szBuffer);
+  }
+}
+
+public Action:DelayWar3ChatMessageTimer(Handle:timer, Handle:datapack)
+{
+  ResetPack(datapack);
+  new client = GetClientOfUserId(ReadPackCell(datapack));
+  new String:sBuffer[MAX_MESSAGE_LENGTH];
+  ReadPackString(datapack, sBuffer, sizeof(sBuffer));
+  if(ValidPlayer(client))
+  {
+    CPrintToChat2(client, sBuffer);
   }
 }
 
