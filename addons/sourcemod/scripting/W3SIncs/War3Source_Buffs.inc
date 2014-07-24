@@ -305,3 +305,44 @@ stock bool:Perplexed(client,printmsg=true) {
     }
     return perplexed;
 }
+
+/**
+ * generic immunity filter for ultimate
+ * used with War3_GetTargetInViewCone
+ *
+ * @param client						client index
+ * @param target						target index
+ * @param SkillID						unltimate id
+ * @return 								if player has immunity returns false
+ */
+public bool:UltFilter(client,target,SkillID)
+{
+	if(W3HasImmunity(target,Immunity_Ultimates))
+	{
+		War3_NotifyPlayerImmuneFromSkill(client, target, SkillID);
+		return false;
+	}
+	return true;
+	//return (!W3HasImmunity(client,Immunity_Ultimates));
+}
+
+/**
+ * generic immunity filter for skills
+ * used with War3_GetTargetInViewCone
+ *
+ * @param client						client index
+ * @param target						target index
+ * @param SkillID						skill id
+ * @return 								if player has immunity returns false
+ */
+public bool:SkillFilter(client,target,SkillID)
+{
+	if(W3HasImmunity(target,Immunity_Skills))
+	{
+		War3_NotifyPlayerImmuneFromSkill(client, target, SkillID);
+		return false;
+	}
+	return true;
+	//return (!W3HasImmunity(client,Immunity_Skills));
+}
+

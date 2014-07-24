@@ -91,6 +91,7 @@ public Native_War3_GetTargetInViewCone(Handle:plugin,numParams)
         new bool:include_friendlys=GetNativeCell(3);
         new Float:cone_angle=GetNativeCell(4);
         new Function:FilterFunction=GetNativeCell(5);
+        new SkillID=GetNativeCell(6);
         if(max_distance<0.0)    max_distance=0.0;
         if(cone_angle<0.0)    cone_angle=0.0;
         
@@ -114,7 +115,9 @@ public Native_War3_GetTargetInViewCone(Handle:plugin,numParams)
                 if(FilterFunction!=INVALID_FUNCTION)
                 {
                     Call_StartFunction(plugin,FilterFunction);
+                    Call_PushCell(client);
                     Call_PushCell(i);
+                    Call_PushCell(SkillID);
                     new result;
                     if(Call_Finish(result)>SP_ERROR_NONE)
                     {
@@ -189,7 +192,9 @@ public Native_War3_GetTargetInViewCone(Handle:plugin,numParams)
                         if(FilterFunction!=INVALID_FUNCTION)
                         {
                             Call_StartFunction(plugin,FilterFunction);
+                            Call_PushCell(client);
                             Call_PushCell(entity);
+                            Call_PushCell(SkillID);
                             if(Call_Finish(result)>SP_ERROR_NONE)
                             {
                                 result=1; // bad callback, return 1 to be safe
