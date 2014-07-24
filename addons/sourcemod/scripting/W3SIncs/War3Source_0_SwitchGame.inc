@@ -5,7 +5,7 @@
 #define GGAME_L4D 5
 #define GGAME_FOF 7
 
-#define GGAMETYPE GGAME_FOF
+#define GGAMETYPE GGAME_TF2
 //#define GGAMETYPE2 GGAME_TF2_NORMAL
 
 //meanwhile in coding...
