@@ -122,7 +122,7 @@ And that's the art of the test!
 //JENKINS overwrites these
 #define BRANCH "undef"
 #define BUILD_NUMBER "undef"
-#define VERSION_NUM "3.1_EVO"
+#define VERSION_NUM "3.2_EVO"
 
 #tryinclude "../../../jenkins.inc"
 // BRANCH and BUILD_NUMBER are set through Jenkins :)
