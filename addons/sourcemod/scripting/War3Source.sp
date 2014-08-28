@@ -115,7 +115,7 @@ And that's the art of the test!
 #include <sourcemod>
 #include "sdkhooks"
 //#include <profiler>
-#include "W3SIncs/War3Source_Interface"
+#include "War3Source/W3SIncs/War3Source_Interface"
 
 //THESE are updated less frequently
 //JENKINS overwrites these
@@ -156,6 +156,88 @@ new Handle:g_OnWar3EventDeathFH;
 new Handle:g_CheckCompatabilityFH;
 new Handle:g_War3InterfaceExecFH;
 
+
+////////////////////////// AttributeBuffs /////////////////////////////////////////
+////////////////////////// AttributeBuffs /////////////////////////////////////////
+////////////////////////// AttributeBuffs /////////////////////////////////////////
+
+// Buffs in general
+new Handle:g_hAttributeID = INVALID_HANDLE; // this stores the id to the attribute that is modified
+new Handle:g_hBuffClient = INVALID_HANDLE; // this stores the id of the client this effect is on
+new Handle:g_hBuffSource = INVALID_HANDLE; // this stores the id of the source of the modification
+new Handle:g_hBuffSourceType = INVALID_HANDLE; // this stores the type of the source (see W3BuffSource)
+new Handle:g_hBuffValue = INVALID_HANDLE; // how big the modification is
+
+// Timed buffs
+new Handle:g_hBuffDuration = INVALID_HANDLE; // how long the modification lasts
+new Handle:g_hBuffExpireFlag = INVALID_HANDLE; // what kind of events make this modification expire
+new Handle:g_hBuffCanStack = INVALID_HANDLE; // bool: Can this modification stack
+
+// Race buffs
+new Handle:g_hRaceBuffRaceId = INVALID_HANDLE;
+
+// Internals
+new Handle:g_hBuffType = INVALID_HANDLE; // if this is a buff or debuff
+new Handle:g_hBuffExpireTime = INVALID_HANDLE; // Internal: When this modification expires
+new Handle:g_hBuffActive = INVALID_HANDLE; // bool: Internal: Is this buff active or expired?
+
+
+////////////////////////// Attributes /////////////////////////////////////////
+////////////////////////// Attributes /////////////////////////////////////////
+////////////////////////// Attributes /////////////////////////////////////////
+
+// Stores data about a attribute
+new Handle:g_hAttributeName = INVALID_HANDLE;
+new Handle:g_hAttributeShortname = INVALID_HANDLE;
+new Handle:g_hAttributeDefault = INVALID_HANDLE;
+
+// Stores the attributes of a player
+new Handle:g_hAttributeValue[MAXPLAYERS] = INVALID_HANDLE;
+
+// Forward handles
+new Handle:g_War3_OnAttributeChanged = INVALID_HANDLE;
+new Handle:g_War3_OnAttributeDescriptionRequested = INVALID_HANDLE;
+
+////////////////////////// War3source...Aura.sp /////////////////////////////////////////
+////////////////////////// War3source...Aura.sp /////////////////////////////////////////
+////////////////////////// War3source...Aura.sp /////////////////////////////////////////
+
+new Handle:g_Forward;
+
+////////////////////////// War3source...BuffMaxHP.sp /////////////////////////////////////////
+////////////////////////// War3source...BuffMaxHP.sp /////////////////////////////////////////
+////////////////////////// War3source...BuffMaxHP.sp /////////////////////////////////////////
+
+new Float:fLastDamageTime[MAXPLAYERSCUSTOM];
+new iClientSpawnHP[MAXPLAYERSCUSTOM];
+new Handle:hCheckBuffTimer[MAXPLAYERSCUSTOM];
+
+#define TF_BUFF_INTERVAL 0.1
+new Float:fNextTFHPBuffTick[MAXPLAYERSCUSTOM];
+
+////////////////////////// War3source...BuffSpeedGravGlow.sp /////////////////////////////////////////
+////////////////////////// War3source...BuffSpeedGravGlow.sp /////////////////////////////////////////
+////////////////////////// War3source...BuffSpeedGravGlow.sp /////////////////////////////////////////
+
+new m_OffsetSpeed=-1;
+new m_OffsetClrRender=-1;
+
+new reapplyspeed[MAXPLAYERSCUSTOM];
+new bool:invisWeaponAttachments[MAXPLAYERSCUSTOM];
+new bool:bDeniedInvis[MAXPLAYERSCUSTOM];
+
+new Float:gspeedmulti[MAXPLAYERSCUSTOM];
+
+new Float:speedBefore[MAXPLAYERSCUSTOM];
+new Float:speedWeSet[MAXPLAYERSCUSTOM];
+
+
+////////////////////////// ASK PLUGIN LOAD /////////////////////////////////////////
+////////////////////////// ASK PLUGIN LOAD /////////////////////////////////////////
+////////////////////////// ASK PLUGIN LOAD /////////////////////////////////////////
+////////////////////////// ASK PLUGIN LOAD /////////////////////////////////////////
+////////////////////////// ASK PLUGIN LOAD /////////////////////////////////////////
+
 public APLRes:AskPluginLoad2Custom(Handle:myself,bool:late,String:error[],err_max)
 {
     //DO NOT REMOVE this print, its for spacial separation for the server console output
@@ -187,8 +269,20 @@ public APLRes:AskPluginLoad2Custom(Handle:myself,bool:late,String:error[],err_ma
         return APLRes_Failure;
     }
 
+    if(!War3Source_InitNatives())
+    {
+        War3_LogCritical("There was a failure in creating the forward based functions, definately halting.");
+        return APLRes_Failure;
+    }
+
     return APLRes_Success;
 }
+
+////////////////////////// OnPluginStart /////////////////////////////////////////
+////////////////////////// OnPluginStart /////////////////////////////////////////
+////////////////////////// OnPluginStart /////////////////////////////////////////
+////////////////////////// OnPluginStart /////////////////////////////////////////
+////////////////////////// OnPluginStart /////////////////////////////////////////
 
 public OnPluginStart()
 {
@@ -206,7 +300,69 @@ public OnPluginStart()
     // Developer debug functions
     RegConsoleCmd("war3refresh",refreshcooldowns);
     RegConsoleCmd("armortest",armortest);
+
+    // War3Source_Engine_AdminConsole.sp
+    RegConsoleCmd("war3_setxp",War3Source_CMDSetXP,"Set a player's XP");
+    RegConsoleCmd("war3_givexp",War3Source_CMD_GiveXP,"Give a player XP");
+    RegConsoleCmd("war3_removexp",War3Source_CMD_RemoveXP,"Remove some XP from a player");
+    RegConsoleCmd("war3_setlevel",War3Source_CMD_War3_SetLevel,"Set a player's level");
+    RegConsoleCmd("war3_givelevel",War3Source_CMD_GiveLevel,"Give a player a single level");
+    RegConsoleCmd("war3_removelevel",War3Source_CMD_RemoveLevel,"Remove a single level from a player");
+    RegConsoleCmd("war3_setgold",War3Source_CMD_War3_SetGold,"Set a player's gold count");
+    RegConsoleCmd("war3_givegold",War3Source_CMD_GiveGold,"Give a player gold");
+    RegConsoleCmd("war3_removegold",War3Source_CMD_RemoveGold,"Remove some gold from a player");
+    RegConsoleCmd("war3_setdiamonds",War3Source_CMD_SetDiamonds,"Set a player's diamonds");
+
+    // War3Source_Engine_AdminMenu.sp
+    RegConsoleCmd("war3admin",War3Source_Admin,"Brings up the War3Source admin panel.");
+
+    RegConsoleCmd("say war3admin",War3Source_Admin,"Brings up the War3Source admin panel.");
+    RegConsoleCmd("say_team war3admin",War3Source_Admin,"Brings up the War3Source admin panel.");
+
+    // War3Source...AttributeBuffs.sp
+    // Buffs in general
+    g_hAttributeID = CreateArray(1);
+    g_hBuffClient = CreateArray(1);
+    g_hBuffSource = CreateArray(1);
+    g_hBuffSourceType = CreateArray(1);
+    g_hBuffValue = CreateArray(1);
+
+    // Timed buffs
+    g_hBuffDuration = CreateArray(1);
+    g_hBuffCanStack = CreateArray(1);
+    g_hBuffExpireFlag = CreateArray(1);
+
+    // Race buffs
+    g_hRaceBuffRaceId = CreateArray(1);
+    
+    // Internals
+    g_hBuffActive = CreateArray(1);
+    g_hBuffExpireTime = CreateArray(1);
+    g_hBuffType = CreateArray(1);
+
+    //War3Source...AttributeBuffs.sp
+    // Attribute data storage
+    g_hAttributeName = CreateArray(FULLNAMELEN);
+    g_hAttributeDefault = CreateArray(1);
+    g_hAttributeShortname = CreateArray(SHORTNAMELEN);
+    
+    for (new i=0; i < MAXPLAYERS; i++)
+    {
+        g_hAttributeValue[i] = CreateArray(1);
+    }
+
+    // War3Source...Aura.sp
+    CreateTimer(0.5,CalcAura,_,TIMER_REPEAT);
+
+    // War3Source...BuffSpeedGravGlow.sp
+    CreateTimer(0.1,DeciSecondTimer,_,TIMER_REPEAT);
 }
+
+////////////////////////// War3Source_InitCVars /////////////////////////////////////////
+////////////////////////// War3Source_InitCVars /////////////////////////////////////////
+////////////////////////// War3Source_InitCVars /////////////////////////////////////////
+////////////////////////// War3Source_InitCVars /////////////////////////////////////////
+////////////////////////// War3Source_InitCVars /////////////////////////////////////////
 
 War3Source_InitCVars()
 {
@@ -222,9 +378,33 @@ War3Source_InitCVars()
     hUseMetric = CreateConVar("war3_metric_system", "1", "Do you want use metric system? 1-Yes, 0-No");
     W3SetVar(hUseMetricCvar, hUseMetric);
 
+    //////////////////////////////////////////////////////////////////// War3Source...BuffSpeedGravGlow.sp
+    if(GameTF())
+    {
+        m_OffsetSpeed=FindSendPropOffs("CTFPlayer","m_flMaxspeed");
+    }
+    else{
+        m_OffsetSpeed=FindSendPropOffs("CBasePlayer","m_flLaggedMovementValue");
+    }
+    if(m_OffsetSpeed==-1)
+    {
+        PrintToServer("[War3Source] Error finding speed offset.");
+    }
+    
+    m_OffsetClrRender=FindSendPropOffs("CBaseAnimating","m_clrRender");
+    if(m_OffsetClrRender==-1)
+    {
+        PrintToServer("[War3Source] Error finding render color offset.");
+    }
+
     return true;
 }
 
+////////////////////////// War3Source_InitForwards /////////////////////////////////////////
+////////////////////////// War3Source_InitForwards /////////////////////////////////////////
+////////////////////////// War3Source_InitForwards /////////////////////////////////////////
+////////////////////////// War3Source_InitForwards /////////////////////////////////////////
+////////////////////////// War3Source_InitForwards /////////////////////////////////////////
 
 bool:War3Source_InitForwards()
 {
@@ -235,8 +415,134 @@ bool:War3Source_InitForwards()
     g_CheckCompatabilityFH = CreateGlobalForward("CheckWar3Compatability", ET_Ignore, Param_String);
     g_War3InterfaceExecFH = CreateGlobalForward("War3InterfaceExec", ET_Ignore);
 
+    ///////////////////////////////////////////////////////////////////// War3Source...Attributes.sp
+    g_War3_OnAttributeChanged = CreateGlobalForward("War3_OnAttributeChanged", ET_Ignore, Param_Cell, Param_Cell, Param_Any, Param_Any);
+    g_War3_OnAttributeDescriptionRequested = CreateGlobalForward("War3_OnAttributeDescriptionRequested", ET_Ignore, Param_Cell, Param_Cell, Param_Any, Param_String, Param_Cell);
+
+    ///////////////////////////////////////////////////////////////////// War3Source...Aura.sp
+    g_Forward=CreateGlobalForward("OnW3PlayerAuraStateChanged",ET_Ignore,Param_Cell,Param_Cell,Param_Cell,Param_Cell);
+
     return true;
 }
+
+////////////////////////// War3Source_InitNatives /////////////////////////////////////////
+////////////////////////// War3Source_InitNatives /////////////////////////////////////////
+////////////////////////// War3Source_InitNatives /////////////////////////////////////////
+
+bool:War3Source_InitNatives()
+{
+    ///////////////////////////////////////////////////////////////////// War3Source...AttributeBuffs.sp
+    CreateNative("War3_ApplyTimedBuff", Native_War3_ApplyTimedBuff); 
+    CreateNative("War3_ApplyTimedDebuff", Native_War3_ApplyTimedDebuff); 
+
+    CreateNative("War3_ApplyRaceBuff", Native_War3_ApplyRaceBuff);
+    CreateNative("War3_ApplyRaceDebuff", Native_War3_ApplyRaceDebuff);
+        
+    CreateNative("War3_RemoveBuff", Native_War3_RemoveBuff);
+
+    ///////////////////////////////////////////////////////////////////// War3Source...Attributes.sp
+    CreateNative("War3_RegisterAttribute", Native_War3_RegisterAttribute);
+    
+    CreateNative("War3_GetAttributeName", Native_War3_GetAttributeName);
+    CreateNative("War3_GetAttributeShortname", Native_War3_GetAttributeShortname);
+    CreateNative("War3_GetAttributeIDByShortname", Native_War3_GetAttributeIDByShortname);
+    CreateNative("War3_GetAttributeValue", Native_War3_GetAttributeValue);
+    CreateNative("War3_GetAttributeDescription", Native_War3_GetAttributeDescription);
+
+    CreateNative("War3_SetAttribute", Native_War3_SetAttribute);
+    CreateNative("War3_ModifyAttribute", Native_War3_ModifyAttribute);
+
+    ///////////////////////////////////////////////////////////////////// War3Source...Aura.sp
+    //Backwards compatible old format / easy buff compatible
+    CreateNative("W3RegisterAura",NW3RegisterAura);//for races
+    CreateNative("W3SetAuraFromPlayer",NW3SetAuraFromPlayer);
+
+    // New format allows greater flexiblity with distances
+    CreateNative("W3RegisterChangingDistanceAura",NW3RegisterChangingDistanceAura);//for races
+    CreateNative("W3SetPlayerAura",NW3SetPlayerAura);
+
+    // Both systems use this:
+    CreateNative("W3RemovePlayerAura",NW3RemovePlayerAura);
+    CreateNative("W3HasAura",NW3HasAura);
+
+    //////////////////////////////////////////////////////////////////// War3Source...BuffSpeedGravGlow.sp
+    CreateNative("W3ReapplySpeed",NW3ReapplySpeed);//for races
+    CreateNative("W3IsBuffInvised",NW3IsBuffInvised);
+    CreateNative("W3GetSpeedMulti",NW3GetSpeedMulti);
+
+    return true;
+}
+
+////////////////////////// OnWar3Event /////////////////////////////////////////
+
+public OnWar3Event(W3EVENT:event,client)
+{
+    if(event == OnBuffChanged)
+    {
+        if(W3GetVar(EventArg1) == iAdditionalMaxHealth && ValidPlayer(client, true))
+        {
+            // Only queue this once
+            if(hCheckBuffTimer[client] == INVALID_HANDLE)
+            {    
+                hCheckBuffTimer[client] = CreateTimer(0.1, CheckHPBuffChange, client);
+            }
+        }
+    }
+    else if(event==ClearPlayerVariables){
+        InternalClearPlayerVars(client);
+    }
+
+}
+
+////////////////////////// OnWar3EventSpawn /////////////////////////////////////////
+////////////////////////// OnWar3EventSpawn /////////////////////////////////////////
+////////////////////////// OnWar3EventSpawn /////////////////////////////////////////
+
+public OnWar3EventSpawn(client){
+    // Aura
+    ShouldCalcAura();
+
+    if (ValidPlayer(client))
+    {
+        fNextTFHPBuffTick[client] = GetEngineTime();
+        iClientSpawnHP[client] = GetClientHealth(client);
+        
+        new iAdditionalHP = W3GetBuffSumInt(client, iAdditionalMaxHealth);
+        new curhp = GetClientHealth(client);
+        SetEntityHealth(client, curhp + iAdditionalHP);
+        
+        iAdditionalHP += W3GetBuffSumInt(client, iAdditionalMaxHealthNoHPChange);
+        War3_SetMaxHP_INTERNAL(client, iClientSpawnHP[client] + iAdditionalHP);
+        fLastDamageTime[client] = 0.0;
+    }
+}
+
+////////////////////////// OnWar3EventDeath /////////////////////////////////////////
+////////////////////////// OnWar3EventDeath /////////////////////////////////////////
+////////////////////////// OnWar3EventDeath /////////////////////////////////////////
+
+public OnWar3EventDeath(victim,attacker,deathrace){
+    //Aura
+    ShouldCalcAura();
+
+    if(GAMETF && ValidPlayer(attacker))
+    {
+        // This isn't written for randomizer or TF2Items shenanigans in general, sorry :-)
+        if (TF2_GetPlayerClass(attacker) == TFClass_DemoMan)
+        {
+            // We hook player_death in PreMode and I'm too lazy to add a new forward for post right now :|
+            // Note the ATTACKER is being checked
+            CreateTimer(0.1, checkHeadsTimer, EntIndexToEntRef(attacker));
+        }
+    }
+}
+
+
+////////////////////////// LoadingXPHintTimer /////////////////////////////////////////
+////////////////////////// LoadingXPHintTimer /////////////////////////////////////////
+////////////////////////// LoadingXPHintTimer /////////////////////////////////////////
+////////////////////////// LoadingXPHintTimer /////////////////////////////////////////
+////////////////////////// LoadingXPHintTimer /////////////////////////////////////////
 
 public Action:LoadingXPHintTimer(Handle:timer)
 {
@@ -256,6 +562,12 @@ public Action:LoadingXPHintTimer(Handle:timer)
     }
 }
 
+////////////////////////// armortest /////////////////////////////////////////
+////////////////////////// armortest /////////////////////////////////////////
+////////////////////////// armortest /////////////////////////////////////////
+////////////////////////// armortest /////////////////////////////////////////
+////////////////////////// armortest /////////////////////////////////////////
+
 public Action:armortest(client, args)
 {
     if(W3IsDeveloper(client))
@@ -272,6 +584,11 @@ public Action:armortest(client, args)
     }
 }
 
+////////////////////////// refreshcooldowns /////////////////////////////////////////
+////////////////////////// refreshcooldowns /////////////////////////////////////////
+////////////////////////// refreshcooldowns /////////////////////////////////////////
+////////////////////////// refreshcooldowns /////////////////////////////////////////
+////////////////////////// refreshcooldowns /////////////////////////////////////////
 
 public Action:refreshcooldowns(client, args)
 {
@@ -288,6 +605,11 @@ public Action:refreshcooldowns(client, args)
     }
 }
 
+////////////////////////// OnMapStart /////////////////////////////////////////
+////////////////////////// OnMapStart /////////////////////////////////////////
+////////////////////////// OnMapStart /////////////////////////////////////////
+////////////////////////// OnMapStart /////////////////////////////////////////
+////////////////////////// OnMapStart /////////////////////////////////////////
 
 public OnMapStart()
 {
@@ -297,6 +619,12 @@ public OnMapStart()
     DelayedWar3SourceCfgExecute();
     OneTimeForwards();
 }
+
+////////////////////////// OnGetGameDescription /////////////////////////////////////////
+////////////////////////// OnGetGameDescription /////////////////////////////////////////
+////////////////////////// OnGetGameDescription /////////////////////////////////////////
+////////////////////////// OnGetGameDescription /////////////////////////////////////////
+////////////////////////// OnGetGameDescription /////////////////////////////////////////
 
 public Action:OnGetGameDescription(String:gameDesc[64])
 {
@@ -311,6 +639,11 @@ public Action:OnGetGameDescription(String:gameDesc[64])
 }
 
 
+////////////////////////// DelayedWar3SourceCfgExecute /////////////////////////////////////////
+////////////////////////// DelayedWar3SourceCfgExecute /////////////////////////////////////////
+////////////////////////// DelayedWar3SourceCfgExecute /////////////////////////////////////////
+////////////////////////// DelayedWar3SourceCfgExecute /////////////////////////////////////////
+////////////////////////// DelayedWar3SourceCfgExecute /////////////////////////////////////////
 
 DelayedWar3SourceCfgExecute()
 {
@@ -342,10 +675,26 @@ DelayedWar3SourceCfgExecute()
     }
 }
 
+////////////////////////// OnClientPutInServer /////////////////////////////////////////
+////////////////////////// OnClientPutInServer /////////////////////////////////////////
+////////////////////////// OnClientPutInServer /////////////////////////////////////////
+////////////////////////// OnClientPutInServer /////////////////////////////////////////
+////////////////////////// OnClientPutInServer /////////////////////////////////////////
+
 public OnClientPutInServer(client)
 {
     LastLoadingHintMsg[client] = GetGameTime();
+/**
+ * Revert the attributes to the default values whenever a player connects
+ */
+    ResetAttributesForPlayer(client);
+
+    SDKHook(client, SDKHook_PostThinkPost, PostThinkPost);
 }
+
+////////////////////////// NW3GetW3Revision /////////////////////////////////////////
+////////////////////////// NW3GetW3Revision /////////////////////////////////////////
+////////////////////////// NW3GetW3Revision /////////////////////////////////////////
 
 public NW3GetW3Revision(Handle:plugin,numParams)
 {
@@ -358,10 +707,19 @@ public NW3GetW3Revision(Handle:plugin,numParams)
     // Revision -1 means developer build :P
     return revision;
 }
+
+////////////////////////// NW3GetW3Version /////////////////////////////////////////
+////////////////////////// NW3GetW3Version /////////////////////////////////////////
+////////////////////////// NW3GetW3Version /////////////////////////////////////////
+
 public NW3GetW3Version(Handle:plugin, numParams)
 {
     SetNativeString(1, VERSION_NUM, GetNativeCell(2));
 }
+
+////////////////////////// War3Source_HookEvents /////////////////////////////////////////
+////////////////////////// War3Source_HookEvents /////////////////////////////////////////
+////////////////////////// War3Source_HookEvents /////////////////////////////////////////
 
 bool:War3Source_HookEvents()
 {
@@ -380,6 +738,10 @@ bool:War3Source_HookEvents()
     return true;
 
 }
+
+////////////////////////// War3Source_PlayerSpawnEvent /////////////////////////////////////////
+////////////////////////// War3Source_PlayerSpawnEvent /////////////////////////////////////////
+////////////////////////// War3Source_PlayerSpawnEvent /////////////////////////////////////////
 
 public War3Source_PlayerSpawnEvent(Handle:event,const String:name[],bool:dontBroadcast)
 {
@@ -426,6 +788,10 @@ public War3Source_PlayerSpawnEvent(Handle:event,const String:name[],bool:dontBro
         W3SetPlayerProp(client, bStatefulSpawn, false); //no longer a "stateful" spawn
     }
 }
+
+////////////////////////// War3Source_PlayerDeathEvent /////////////////////////////////////////
+////////////////////////// War3Source_PlayerDeathEvent /////////////////////////////////////////
+////////////////////////// War3Source_PlayerDeathEvent /////////////////////////////////////////
 
 public Action:War3Source_PlayerDeathEvent(Handle:event,const String:name[],bool:dontBroadcast)
 {
@@ -520,6 +886,9 @@ public Action:War3Source_PlayerDeathEvent(Handle:event,const String:name[],bool:
     return Plugin_Continue;
 }
 
+////////////////////////// CheckPendingRace /////////////////////////////////////////
+////////////////////////// CheckPendingRace /////////////////////////////////////////
+////////////////////////// CheckPendingRace /////////////////////////////////////////
 
 CheckPendingRace(client)
 {
@@ -551,6 +920,10 @@ CheckPendingRace(client)
         }
     }
 }
+
+////////////////////////// War3Source_IntroMenu /////////////////////////////////////////
+////////////////////////// War3Source_IntroMenu /////////////////////////////////////////
+////////////////////////// War3Source_IntroMenu /////////////////////////////////////////
 
 War3Source_IntroMenu(client)
 {
@@ -595,6 +968,10 @@ War3Source_IntroMenu(client)
     DisplayMenu(introMenu, client, MENU_TIME_FOREVER);
 }
 
+////////////////////////// War3Source_IntroMenu_Select /////////////////////////////////////////
+////////////////////////// War3Source_IntroMenu_Select /////////////////////////////////////////
+////////////////////////// War3Source_IntroMenu_Select /////////////////////////////////////////
+
 public War3Source_IntroMenu_Select(Handle:menu, MenuAction:action, client, selection)
 {
     if(ValidPlayer(client) && War3_GetRace(client) == 0)
@@ -615,6 +992,10 @@ public War3Source_IntroMenu_Select(Handle:menu, MenuAction:action, client, selec
     }
 }
 
+////////////////////////// OneTimeForwards /////////////////////////////////////////
+////////////////////////// OneTimeForwards /////////////////////////////////////////
+////////////////////////// OneTimeForwards /////////////////////////////////////////
+
 //mapstart
 OneTimeForwards()
 {
@@ -623,6 +1004,10 @@ OneTimeForwards()
     Call_Finish();
 
 }
+
+////////////////////////// DoForward_OnWar3EventSpawn /////////////////////////////////////////
+////////////////////////// DoForward_OnWar3EventSpawn /////////////////////////////////////////
+////////////////////////// DoForward_OnWar3EventSpawn /////////////////////////////////////////
 
 DoForward_OnWar3EventSpawn(client)
 {
@@ -638,6 +1023,10 @@ DoForward_OnWar3EventSpawn(client)
     //CloseHandle(prof);
 }
 
+////////////////////////// DoForward_OnWar3EventDeath /////////////////////////////////////////
+////////////////////////// DoForward_OnWar3EventDeath /////////////////////////////////////////
+////////////////////////// DoForward_OnWar3EventDeath /////////////////////////////////////////
+
 DoForward_OnWar3EventDeath(victim,killer,deathrace)
 {
     Call_StartForward(g_OnWar3EventDeathFH);
@@ -647,8 +1036,215 @@ DoForward_OnWar3EventDeath(victim,killer,deathrace)
     Call_Finish();
 }
 
+////////////////////////// DoWar3InterfaceExecForward /////////////////////////////////////////
+////////////////////////// DoWar3InterfaceExecForward /////////////////////////////////////////
+////////////////////////// DoWar3InterfaceExecForward /////////////////////////////////////////
+
 DoWar3InterfaceExecForward()
 {
     Call_StartForward(g_War3InterfaceExecFH);
     Call_Finish();
 }
+
+
+// FOR GALLIFREY, err, OnGameFrame, I mean...
+
+public OnGameFrame()
+{
+
+    ///////////////////////////////////  War3Source_Engine_BuffMaxHP.sp
+    
+    new Float:now = GetEngineTime();
+    
+    for(new i = 0; i < MaxClients; i++)
+    {
+        if(!ValidPlayer(i, true))
+        {
+            continue;
+        }
+        
+        if(GAMETF)
+        {
+            if((now >= fLastDamageTime[i] + 10.0) && (now >= fNextTFHPBuffTick[i]))
+            {
+                new curhp = GetClientHealth(i);
+                new hpadd = W3GetBuffSumInt(i, iAdditionalMaxHealth);
+                new maxhp = War3_GetMaxHP(i) - hpadd; //nomal player hp
+                
+                if(curhp >= maxhp && curhp < maxhp + hpadd)
+                { 
+                    new newhp = curhp + 2;
+                    if(newhp > maxhp + hpadd)
+                    {
+                        newhp = maxhp + hpadd;
+                    }
+                    SetEntityHealth(i, newhp);
+                }
+                
+                fNextTFHPBuffTick[i] += TF_BUFF_INTERVAL;
+            }
+        }
+    }
+
+    ///////////////////////////////  War3Source_Engine_AttributeBuffs.sp
+
+    now = GetEngineTime();
+    
+    new expireFlag;
+    new Float:fExpires;
+    new bool:bActiveBuff;
+    for(new i = 0; i < GetArraySize(g_hBuffActive); i++)
+    {
+        // Only interact with active buffs
+        bActiveBuff = GetArrayCell(g_hBuffActive, i);
+        if (!bActiveBuff)
+        {
+            continue;
+        }
+        
+        // Only expire them if they actually expire on a timer
+        expireFlag = GetArrayCell(g_hBuffExpireFlag, i);
+        if (!(expireFlag & BUFF_EXPIRES_ON_TIMER))
+        {
+            continue;
+        }
+        
+        // Check if they have expired
+        fExpires = GetArrayCell(g_hBuffExpireTime, i);
+        if (fExpires > 0.0 && fExpires <= now)
+        {
+            RemoveBuff(i);
+            continue;
+        }
+    }
+
+    ///////////////////////////////  War3Source_Engine_BuffSpeedGravGlow.sp
+
+    for(new client=1;client<=MaxClients;client++)
+    {
+        if(ValidPlayer(client,true))//&&!bIgnoreTrackGF[client])
+        {
+            
+            
+            new Float:currentmaxspeed=GetEntDataFloat(client,m_OffsetSpeed);
+            //DP("speed %f, speedbefore %f , we set %f",currentmaxspeed,speedBefore[client],speedWeSet[client]);
+            if(currentmaxspeed!=speedWeSet[client]) ///SO DID engien set a new speed? copy that!! //TFIsDefaultMaxSpeed(client,currentmaxspeed)){ //ONLY IF NOT SET YET
+            {    
+                //DP("detected newspeed %f was %f",currentmaxspeed,speedWeSet[client]);
+                speedBefore[client]=currentmaxspeed;
+                reapplyspeed[client]++;
+            }
+            
+            
+            
+            //PrintToChat(client,"speed %f %s",currentmaxspeed, TFIsDefaultMaxSpeed(client,currentmaxspeed)?"T":"F");
+            if(reapplyspeed[client]>0)
+            {
+        //    DP("reapply");
+                reapplyspeed[client]=0;
+                ///player frame tracking, if client speed is not what we set, we reapply speed
+                
+                //PrintToChatAll("1");
+                if(War3_GetGame()==Game_TF){
+                    
+                    
+                    
+                //    if(true||    speedBefore[client]>3.0){ //reapply speed, using previous cached base speed, make sure the cache isnt' zero lol 
+                        new Float:speedmulti=1.0;
+
+                        //DP("before");
+                        //new Float:speedadd=1.0;
+                        if(!W3GetBuffHasTrue(client,bBuffDenyAll)){
+                            speedmulti=W3GetBuffMaxFloat(client,fMaxSpeed)+W3GetBuffMaxFloat(client,fMaxSpeed2)-1.0;
+                            
+                        }
+                        if(W3GetBuffHasTrue(client,bStunned)||W3GetBuffHasTrue(client,bBashed)){
+                        //DP("stunned or bashed");
+                            speedmulti=0.0;
+                        }
+                        if(!W3GetBuffHasTrue(client,bSlowImmunity)){
+                            speedmulti=FloatMul(speedmulti,W3GetBuffStackedFloat(client,fSlow)); 
+                            speedmulti=FloatMul(speedmulti,W3GetBuffStackedFloat(client,fSlow2)); 
+                        }
+                        //PrintToConsole(client,"speedmulti should be 1.0 %f %f",speedmulti,speedadd);
+                        gspeedmulti[client]=speedmulti;
+                        new Float:newmaxspeed=FloatMul(speedBefore[client],speedmulti);
+                        if(newmaxspeed<0.1){
+                            newmaxspeed=0.1;
+                        }
+                        speedWeSet[client]=newmaxspeed;
+                        SetEntDataFloat(client,m_OffsetSpeed,newmaxspeed,true);
+                        
+                        //DP("%f",newmaxspeed);
+                //    }
+                }
+                else{ //cs?
+                                        
+                    new Float:speedmulti=1.0;
+                    
+                    //new Float:speedadd=1.0;
+                    if(!W3GetBuffHasTrue(client,bBuffDenyAll)){
+                        speedmulti=W3GetBuffMaxFloat(client,fMaxSpeed)+W3GetBuffMaxFloat(client,fMaxSpeed2)-1.0;
+                    }
+                    if(W3GetBuffHasTrue(client,bStunned)||W3GetBuffHasTrue(client,bBashed)){
+                        speedmulti=0.0;
+                    }
+                    if(!W3GetBuffHasTrue(client,bSlowImmunity)){
+                        speedmulti=FloatMul(speedmulti,W3GetBuffStackedFloat(client,fSlow)); 
+                        speedmulti=FloatMul(speedmulti,W3GetBuffStackedFloat(client,fSlow2)); 
+                    }
+                    
+                    if(GetEntDataFloat(client,m_OffsetSpeed)!=speedmulti){
+                        SetEntDataFloat(client,m_OffsetSpeed,speedmulti);
+                    }
+                }
+            }
+            
+            
+            
+            new MoveType:currentmovetype=GetEntityMoveType(client);
+            new MoveType:shouldmoveas=MOVETYPE_WALK;
+            if(W3GetBuffHasTrue(client,bNoMoveMode)){
+                shouldmoveas=MOVETYPE_NONE;
+            }
+            if(W3GetBuffHasTrue(client,bNoClipMode)){
+                shouldmoveas=MOVETYPE_NOCLIP;
+            }
+            else if(W3GetBuffHasTrue(client,bFlyMode)&&!W3GetBuffHasTrue(client,bFlyModeDeny)){
+                shouldmoveas=MOVETYPE_FLY;
+            }
+            
+            /* Glider (290611): 
+             *         I have implemented a extremly dirty way to prevent some
+             *      shit that goes wrong in L4D2.
+             *         
+             *      If a tank tries to climb a object, he changes his
+             *      move type. This code prevented them from ever
+             *      climbing anything.
+             *         
+             *      Players also change their move type when they get
+             *      hit so hard they stagger into a direction, making
+             *      them move slower. This code made them stagger much
+             *      faster, resulting in crossing a much larger distance
+             *      (usually right into some pit).
+             *         
+             *      TODO: Fix properly ;)
+             */
+            
+            if(currentmovetype!=shouldmoveas && !GAMEL4DANY){
+                SetEntityMoveType(client,shouldmoveas);
+            }
+            //PrintToChatAll("end");
+        }
+    }
+}
+
+
+#include "War3Source/War3Source_Engine_AdminConsole.sp"
+#include "War3Source/War3Source_Engine_AdminMenu.sp"
+#include "War3Source/War3Source_Engine_Attributes.sp"
+#include "War3Source/War3Source_Engine_AttributeBuffs.sp"
+#include "War3Source/War3Source_Engine_Aura.sp"
+#include "War3Source/War3Source_Engine_BuffMaxHP.sp"
+#include "War3Source/War3Source_Engine_BuffSpeedGravGlow.sp"
+#include "War3Source/War3Source_Engine_BuffSystem.sp"
